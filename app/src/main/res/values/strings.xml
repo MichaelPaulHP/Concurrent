@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Concurrent</string>
+    <string name="direction_destination">where do you want to go</string>
+    <string name="direction_origin">Where are you</string>
+    <string name="direction_date">what time</string>
+    <string name="create">create</string>
+</resources>
