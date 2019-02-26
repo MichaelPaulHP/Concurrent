@@ -6,11 +6,13 @@ import android.app.Activity;
 import android.arch.lifecycle.MutableLiveData;
 import android.arch.lifecycle.ViewModel;
 import android.content.Context;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.widget.Toast;
 
 import com.example.mrrobot.concurrent.Config.MapBox;
 import com.example.mrrobot.concurrent.R;
@@ -89,7 +91,7 @@ public class LocationViewModel extends ViewModel implements
         this.mapboxMap = mapboxMap;
         // SET STYLE
         //String themeCurrent = MapBox.style;
-        this.mapboxMap.setStyle(Style.LIGHT, new Style.OnStyleLoaded() {
+        this.mapboxMap.setStyle(MapBox.style, new Style.OnStyleLoaded() {
             @Override
             public void onStyleLoaded(@NonNull Style style) {
                 enableLocationComponent();
@@ -141,23 +143,27 @@ public class LocationViewModel extends ViewModel implements
     }
 
     private void createPoint(Style style){
+        Resources resources= this.context.getResources();
+        if(resources==null){
+            Toast.makeText(this.context,"null Resources",Toast.LENGTH_LONG).show();
+        }
+        else {
+            Bitmap bitmap = BitmapFactory.decodeResource(this.context.getResources(), R.drawable.ic_location_on_black_24dp);
+            style.addImage("location_icon", bitmap);
 
-        Bitmap bitmap= BitmapFactory.decodeResource(this.context.getResources(),R.drawable.ic_location_on_black_24dp);
-        style.addImage("location_icon",bitmap);
+            geoJsonSource = new GeoJsonSource("source-id",
+                    Feature.fromGeometry(Point.fromLngLat(currentPosition.getLongitude(),
+                            currentPosition.getLatitude())));
+            style.addSource(geoJsonSource);
 
-        geoJsonSource = new GeoJsonSource("source-id",
-                Feature.fromGeometry(Point.fromLngLat(currentPosition.getLongitude(),
-                        currentPosition.getLatitude())));
-        style.addSource(geoJsonSource);
+            style.addLayer(new SymbolLayer("layer-id", "source-id")
+                    .withProperties(
+                            PropertyFactory.iconImage("location_icon"),
+                            PropertyFactory.iconIgnorePlacement(true),
+                            PropertyFactory.iconAllowOverlap(true)
+                    ));
 
-        style.addLayer(new SymbolLayer("layer-id", "source-id")
-                .withProperties(
-                        PropertyFactory.iconImage("location_icon"),
-                        PropertyFactory.iconIgnorePlacement(true),
-                        PropertyFactory.iconAllowOverlap(true)
-                ));
-
-
+        }
     }
 
     // locationEngine.requestLocationUpdates

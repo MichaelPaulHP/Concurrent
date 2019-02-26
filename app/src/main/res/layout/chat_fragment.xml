@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ui.chat.ChatFragment"
+    android:orientation="vertical">
+    <Button
+        android:id="@+id/testCreate_button"
+        android:layout_width="100dp"
+        android:layout_height="52dp"
+        android:text="createChat"
+        />
+    <Button
+        android:id="@+id/test_button"
+        android:layout_width="100dp"
+        android:layout_height="52dp"
+        android:text="set messages"
+        />
+
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/recyclerViewChat"
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
+        android:orientation="horizontal"
+        android:scrollbars="horizontal">
+    </android.support.v7.widget.RecyclerView>
+
+</LinearLayout>

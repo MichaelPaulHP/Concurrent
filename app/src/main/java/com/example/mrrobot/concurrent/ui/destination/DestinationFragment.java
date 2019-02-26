@@ -60,7 +60,7 @@ public class DestinationFragment extends Fragment {
                 getChildFragmentManager().findFragmentById(R.id.autocomplete_fragment);
 
 
-        //autocompleteFragment.setTypeFilter(TypeFilter.REGIONS);
+        //autocompleteFragment.setTypeFilter(TypeFilter.ADDRESS);
         autocompleteFragment.setCountry("PE");
 
         // Specify the types of place data to return.
@@ -91,6 +91,9 @@ public class DestinationFragment extends Fragment {
 
     // LIFE CYCLE
 
+
+
+    // INTERFACE
     public interface DestinationListener{
 
         void onPlaceSelected(Place place);
