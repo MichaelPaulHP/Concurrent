@@ -1,11 +1,17 @@
 <resources>
 
-    <!-- Base application theme. -->
+    <!-- Base application theme. BLACK and WHITE -->
     <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+
+        <item name="color_primary" >#FFF</item>
+        <item name="color_secondary" >#000</item>
+        <item name="color_accent">#C08118</item>
+        <item name="color_disable">#DDD</item> <!-- color mas transparent at color primary -->
+
     </style>
 
 </resources>

@@ -4,4 +4,5 @@
     <string name="direction_origin">Where are you</string>
     <string name="direction_date">what time</string>
     <string name="create">create</string>
+    <string name="hint_enter_a_message">Type Hello</string>
 </resources>

@@ -44,6 +44,9 @@
             android:text="SALIDA"
             android:textColor="#222"
             />
+
+
+
         <com.mapbox.mapboxsdk.maps.MapView
             android:id="@+id/mapView"
             android:layout_width="match_parent"
@@ -53,5 +56,7 @@
             mapbox:mapbox_cameraZoom="11"
             />
     </LinearLayout>
+
+
 
 </RelativeLayout>

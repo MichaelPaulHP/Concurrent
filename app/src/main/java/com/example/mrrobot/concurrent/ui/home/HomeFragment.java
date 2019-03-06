@@ -1,6 +1,7 @@
 package com.example.mrrobot.concurrent.ui.home;
 
 import android.arch.lifecycle.ViewModelProviders;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -10,6 +11,8 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.example.mrrobot.concurrent.R;
+import com.example.mrrobot.concurrent.ui.chat.DialogsActivity;
+
 
 public class HomeFragment extends Fragment {
 
@@ -22,7 +25,16 @@ public class HomeFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.home_fragment, container, false);
+        View view= inflater.inflate(R.layout.home_fragment, container, false);
+
+        view.findViewById(R.id.btnChats).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                getContext().startActivity(new Intent(getContext(), DialogsActivity.class));
+            }
+        });
+
+        return view;
     }
 
     @Override
@@ -30,6 +42,7 @@ public class HomeFragment extends Fragment {
         super.onActivityCreated(savedInstanceState);
         mViewModel = ViewModelProviders.of(this).get(HomeViewModel.class);
         // TODO: Use the ViewModel
+
     }
 
 }

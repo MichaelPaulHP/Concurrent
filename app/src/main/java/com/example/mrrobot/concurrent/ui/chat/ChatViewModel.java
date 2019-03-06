@@ -2,6 +2,7 @@ package com.example.mrrobot.concurrent.ui.chat;
 
 import android.arch.lifecycle.ViewModel;
 import android.content.Context;
+import android.databinding.ObservableField;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
@@ -15,17 +16,23 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 public class ChatViewModel extends ViewModel {
 
     List<Chat> chats = new ArrayList<>();
-    User user = new User("CURRENT USER","33333");
+    User user = new User("CURRENT USER","0","http://i.imgur.com/pv1tBmT.png");
+    User userTest = new User("test User","1","http://i.imgur.com/R3Jm1CL.png");
+    Message message = new Message("id",userTest,"firstMEssage", Calendar.getInstance().getTime());
     MessageRecyclerViewAdapter messageAdapter;
     ChatRoomListener chatRoomListener;
+    // prueba
+
+    ObservableField<Integer> count= new ObservableField<>(0);
 
     public ChatViewModel() {
-
+        this.count.set(4);
     }
 
 
@@ -75,7 +82,7 @@ public class ChatViewModel extends ViewModel {
         prueba.saveMessage(new Message("hola",this.user.getUserName(),Message.ME_MESSAGE));
         // prueba.addMessageToList();
         prueba.saveMessage(new Message("Mundo HOLA",this.user.getUserName(),Message.ME_MESSAGE));
-        User qwe = new User("MY NAME","MY ID");
+        User qwe = new User("MY NAME","MY ID","http://i.imgur.com/R3Jm1CL.png");
         prueba.saveUser(qwe);
         prueba.addUserToList(qwe);
         prueba.saveMessage(new Message("hola q hace",qwe.getUserName(),Message.YOUR_MESSAGE));
@@ -95,6 +102,16 @@ public class ChatViewModel extends ViewModel {
 
     public void setChatRoomListener(ChatRoomListener chatRoomListener) {
         this.chatRoomListener = chatRoomListener;
+    }
+    public Message createMessage(){
+        Calendar  calendar= Calendar.getInstance();
+        Message message = new Message("werweID",this.userTest,"message de userTest",calendar.getTime());
+        return message;
+    }
+
+    public void increment(){
+        Integer i=this.count.get();
+        this.count.set(i+1);
     }
 
     public interface ChatRoomListener{

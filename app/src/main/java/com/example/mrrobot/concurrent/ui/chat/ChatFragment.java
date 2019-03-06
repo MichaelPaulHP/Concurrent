@@ -1,6 +1,7 @@
 package com.example.mrrobot.concurrent.ui.chat;
 
 import android.arch.lifecycle.ViewModelProviders;
+import android.databinding.Observable;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -45,6 +46,7 @@ public class ChatFragment extends Fragment
         // BUTTON TEST
         this.btnTest = view.findViewById(R.id.test_button);
         this.btnCreate = view.findViewById(R.id.testCreate_button);
+
         return view;
     }
 
@@ -55,6 +57,12 @@ public class ChatFragment extends Fragment
         mViewModel = ViewModelProviders.of(this).get(ChatViewModel.class);
         mViewModel.setChatRoomListener(this);
 
+        this.mViewModel.count.addOnPropertyChangedCallback(new Observable.OnPropertyChangedCallback() {
+            @Override
+            public void onPropertyChanged(Observable sender, int propertyId) {
+                btnCreate.setText(mViewModel.count.get().toString());
+            }
+        });
 
         this.btnTest.setOnClickListener(this);
         this.btnCreate.setOnClickListener(this);
@@ -70,6 +78,7 @@ public class ChatFragment extends Fragment
                 break;
             case R.id.testCreate_button:
                 this.mViewModel.createChat();
+                this.mViewModel.increment();
                 break;
         }
 

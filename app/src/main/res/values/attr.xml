@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <attr name="color_primary" format="color" />
+    <attr name="color_secondary" format="color"/>
+    <attr name="color_accent" format="color"/>
+    <attr name="color_disable" format="color"/>
+</resources>

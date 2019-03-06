@@ -1,21 +1,24 @@
 package com.example.mrrobot.concurrent.Models;
 
+import com.stfalcon.chatkit.commons.models.IUser;
+
 import java.util.ArrayList;
 import java.util.List;
 
-public class User {
+public class User implements IUser {
     private String userName;
 
     private String id;
     private List<Chat> chats=new ArrayList<>();
-
+    private String avatarUrl;
     public User() {
 
     }
 
-    public User(String userName, String id) {
+    public User(String userName, String id,String avatar) {
         this.userName = userName;
         this.id = id;
+        this.avatarUrl=avatar;
     }
 
 
@@ -26,6 +29,28 @@ public class User {
     public void joinToChat(Chat chat){
         this.chats.add(chat);
     }
+
+
+    /**
+     * Returns the user's name
+     *
+     * @return the user's name
+     */
+    @Override
+    public String getName() {
+        return this.userName;
+    }
+
+    /**
+     * Returns the user's avatar image url
+     *
+     * @return the user's avatar image url
+     */
+    @Override
+    public String getAvatar() {
+        return this.avatarUrl;
+    }
+
     /**
      * this user send message to chat
      * @param messageText: text of message
@@ -35,6 +60,7 @@ public class User {
 //        Message message = new Message(messageText,this,Message.ME_MESSAGE);
 //        chat.addMessage(message);
 //    }
+
 
     public String getId() {
         return id;
