@@ -1,14 +1,70 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".ui.chat.DialogsActivity">
 
-    <com.stfalcon.chatkit.dialogs.DialogsList
-        android:id="@+id/dialogsList"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
 
-</android.support.constraint.ConstraintLayout>
+    <!--Recycler View: chats in circle -->
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/recyclerViewListChats"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:orientation="horizontal"
+        android:scrollbars="horizontal"
+        android:layout_alignParentTop="true"
+        >
+    </android.support.v7.widget.RecyclerView>
+
+    <!-- END Recycler View: chats in circle -->
+    <Button
+        android:id="@+id/btnTestChat"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/recyclerViewListChats"
+        android:text="createChat"/>
+    <com.stfalcon.chatkit.messages.MessagesList
+        android:id="@+id/messagesList"
+        android:layout_width="match_parent"
+        android:layout_height="500dp"
+        android:layout_above="@+id/input"
+
+        app:incomingDefaultBubbleColor="?attr/color_disable"
+        app:incomingDefaultBubblePressedColor="?attr/color_disable"
+        app:incomingDefaultBubbleSelectedColor="?attr/color_disable"
+        app:incomingDefaultImageOverlayPressedColor="?attr/color_disable"
+        app:incomingDefaultImageOverlaySelectedColor="?attr/color_disable"
+        app:incomingTextColor="?attr/color_secondary"
+        app:incomingTextLinkColor="?attr/color_accent"
+
+
+        app:outcomingDefaultBubbleColor="?attr/color_secondary"
+        app:outcomingDefaultBubblePressedColor="?attr/color_secondary"
+        app:outcomingDefaultBubbleSelectedColor="?attr/color_secondary"
+        app:outcomingDefaultImageOverlayPressedColor="?attr/color_secondary"
+        app:outcomingDefaultImageOverlaySelectedColor="?attr/color_secondary"
+        app:outcomingTextColor="?attr/color_primary"
+        app:outcomingTextLinkColor="?attr/color_accent"
+        />
+
+
+
+    <com.stfalcon.chatkit.messages.MessageInput
+        android:id="@+id/input"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/color_secondary"
+        app:attachmentButtonBackground="@android:color/transparent"
+        app:attachmentButtonDefaultIconColor="@android:color/transparent"
+        app:attachmentButtonDefaultIconPressedColor="@android:color/transparent"
+        app:inputButtonBackground="@android:color/transparent"
+        app:inputButtonDefaultIconColor="?attr/color_secondary"
+        app:inputButtonDefaultIconDisabledColor="?attr/color_disable"
+        app:inputTextColor="?attr/color_primary"
+        android:layout_alignParentBottom="true"
+        app:inputHint="@string/hint_enter_a_message"
+        app:showAttachmentButton="true"/>
+
+</RelativeLayout>

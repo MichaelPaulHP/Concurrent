@@ -1,4 +1,4 @@
-package com.example.mrrobot.concurrent.Models;
+package com.example.mrrobot.concurrent.models;
 
 import com.stfalcon.chatkit.commons.models.IDialog;
 import com.stfalcon.chatkit.commons.models.IUser;

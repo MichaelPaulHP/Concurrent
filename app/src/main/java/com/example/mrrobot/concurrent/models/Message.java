@@ -1,15 +1,12 @@
-package com.example.mrrobot.concurrent.Models;
+package com.example.mrrobot.concurrent.models;
 
 import android.support.annotation.Nullable;
 
-import com.example.mrrobot.concurrent.Firebase.DataBase;
-import com.google.firebase.database.ServerValue;
 import com.stfalcon.chatkit.commons.models.IMessage;
 import com.stfalcon.chatkit.commons.models.IUser;
 import com.stfalcon.chatkit.commons.models.MessageContentType;
 
 import java.util.Date;
-import java.util.Map;
 
 public class Message implements IMessage,
         MessageContentType.Image, /*this is for default image messages implementation*/

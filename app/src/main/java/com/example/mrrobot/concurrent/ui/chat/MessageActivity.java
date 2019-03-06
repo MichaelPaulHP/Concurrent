@@ -8,7 +8,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 
-import com.example.mrrobot.concurrent.Models.Message;
+import com.example.mrrobot.concurrent.models.Message;
 import com.example.mrrobot.concurrent.R;
 import com.squareup.picasso.Picasso;
 import com.stfalcon.chatkit.commons.ImageLoader;
@@ -18,7 +18,6 @@ import com.stfalcon.chatkit.messages.MessagesListAdapter;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.Locale;
 
 public class MessageActivity extends AppCompatActivity

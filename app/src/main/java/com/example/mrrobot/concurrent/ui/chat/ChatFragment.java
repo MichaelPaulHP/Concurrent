@@ -12,11 +12,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.LinearLayout;
-import android.widget.QuickContactBadge;
-import android.widget.Toast;
 
-import com.example.mrrobot.concurrent.Models.Chat;
+import com.example.mrrobot.concurrent.models.Chat;
 import com.example.mrrobot.concurrent.R;
 
 public class ChatFragment extends Fragment

@@ -7,7 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.example.mrrobot.concurrent.Models.Message;
+import com.example.mrrobot.concurrent.models.Message;
 import com.example.mrrobot.concurrent.R;
 
 import java.util.ArrayList;
@@ -51,6 +51,9 @@ public class MessageRecyclerViewAdapter extends RecyclerView.Adapter<MessageRecy
     }
     @Override
     public int getItemCount() {
+        if(this.mMessages==null){
+            return 0;
+        }
         return mMessages.size();
     }
 

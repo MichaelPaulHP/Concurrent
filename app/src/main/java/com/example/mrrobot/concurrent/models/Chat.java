@@ -1,15 +1,12 @@
-package com.example.mrrobot.concurrent.Models;
+package com.example.mrrobot.concurrent.models;
 
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import android.databinding.BindingAdapter;
+import android.databinding.ObservableField;
+import android.widget.ImageView;
 
-import com.example.mrrobot.concurrent.Firebase.DataBase;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnSuccessListener;
+import com.example.mrrobot.concurrent.R;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.ChildEventListener;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ServerValue;
@@ -29,7 +26,8 @@ public class Chat {
     private List<User> users = new ArrayList<>();
     private List<Message> messages = new ArrayList<>();
 
-
+    public ObservableField<String> persons= new ObservableField<>("1/3");
+    public int icon= R.drawable.mapbox_logo_icon;
     public Chat() {
 
     }
@@ -171,7 +169,10 @@ public class Chat {
         return this.id.equals(a.id);
     }
 
-
+    @BindingAdapter("android:src")
+    public static void setImageResource(ImageView imageView, int resource){
+        imageView.setImageResource(resource);
+    }
 //    public static void main(String args[]){
 //
 //        Chat chat1 = new Chat();

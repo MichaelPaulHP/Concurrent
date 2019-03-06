@@ -45,4 +45,5 @@ dependencies {
     implementation 'com.github.stfalcon:chatkit:0.3.3'
     // Picasso
     implementation 'com.squareup.picasso:picasso:2.71828'
+    implementation 'com.android.support:cardview-v7:28.0.0'
 }
