@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
+import android.widget.Toast;
 
 import com.example.mrrobot.concurrent.R;
 
@@ -35,10 +36,23 @@ public class DialogsActivity extends AppCompatActivity {
         initListOfMessages();
         initMessageInput();
 
-        findViewById(R.id.btnTestChat).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.btnTestCreateChat).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                Toast.makeText(getApplicationContext(),"click create chat",Toast.LENGTH_LONG).show();
                 chatViewModel.testCreateChat();
+            }
+        });
+        findViewById(R.id.btnTestCreateUser).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                chatViewModel.testCreateUser();
+            }
+        });
+        findViewById(R.id.btnTestSendMessage).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                chatViewModel.testSaveMessage();
             }
         });
     }

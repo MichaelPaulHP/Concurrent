@@ -38,6 +38,10 @@ public class ChatsAdapter extends RecyclerView.Adapter<ChatsAdapter.ViewHolder> 
         viewHolder.setChat(this.chats.get(i));
     }
 
+    /**
+     * add a chat to list and notifyItemInserted
+     * @param chat
+     */
     public void addChat(Chat chat) {
         this.chats.add(chat);
         notifyItemInserted(this.chats.size() - 1);

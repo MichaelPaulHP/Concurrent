@@ -1,35 +1,56 @@
 package com.example.mrrobot.concurrent.models;
 
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.Exclude;
+import com.google.firebase.database.FirebaseDatabase;
 import com.stfalcon.chatkit.commons.models.IUser;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class User implements IUser {
-    private String userName;
 
     private String id;
-    private List<Chat> chats=new ArrayList<>();
-    private String avatarUrl;
+    private String idGoogle;
+
+    // firebase
+    public String name;
+    public String avatar;
+    public Double numChats;
+    public List<Chat> myChats;
+
     public User() {
 
     }
 
-    public User(String userName, String id,String avatar) {
-        this.userName = userName;
+    public User(String name, String avatar) {
         this.id = id;
-        this.avatarUrl=avatar;
+        this.name = name;
+        this.avatar = avatar;
     }
 
+    public String getIdGoogle() {
+        return idGoogle;
+    }
+    public void setIdGoogle(String idGoogle) {
+        this.idGoogle = idGoogle;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
 
     /**
-     * NOT SAVE in data base, solo add to list
-     * @param chat
+     * Returns the user's id
+     *
+     * @return the user's id
      */
-    public void joinToChat(Chat chat){
-        this.chats.add(chat);
+    @Override
+    public String getId() {
+        return this.id;
     }
-
 
     /**
      * Returns the user's name
@@ -38,7 +59,7 @@ public class User implements IUser {
      */
     @Override
     public String getName() {
-        return this.userName;
+        return this.name;
     }
 
     /**
@@ -48,33 +69,41 @@ public class User implements IUser {
      */
     @Override
     public String getAvatar() {
-        return this.avatarUrl;
+        return this.avatar;
     }
 
     /**
-     * this user send message to chat
-     * @param messageText: text of message
-     * @param chat: destination chat
+     * save user in DB
+     * @param user with chats' list
+     * @return task<Void>
      */
-//    public void sendMessage(String messageText,Chat chat){
-//        Message message = new Message(messageText,this,Message.ME_MESSAGE);
-//        chat.addMessage(message);
+    public static Task<Void> save(User user){
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        final DatabaseReference dbReferenceMessages;
+        dbReferenceMessages = database.getReference("/RoomsChat/Users");
+        return dbReferenceMessages.child(user.getIdGoogle()).setValue(user);
+    }
+
+//    public static List<String> myChats(String idUser){
+//        FirebaseDatabase database = FirebaseDatabase.getInstance();
+//        final DatabaseReference dbReferenceMessages;
+//        dbReferenceMessages = database.getReference("/RoomsChat/Users/"+idUser);
+//        dbReferenceMessages.child("chats");
 //    }
 
+    /**
+     *  fields  to save in DB user reference indirect, exclude Lists
+     * @return
+     */
+    @Exclude
+    public Map<String, Object> toMap() {
+        HashMap<String, Object> result = new HashMap<>();
+        //result.put("id", this.id);
+        result.put("name", this.name);
+        result.put("avatar", this.avatar);
+        result.put("numChats", this.numChats);
 
-    public String getId() {
-        return id;
-    }
 
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getUserName() {
-        return userName;
-    }
-
-    public void setUserName(String userName) {
-        this.userName = userName;
+        return result;
     }
 }

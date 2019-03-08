@@ -9,7 +9,7 @@
 
     <!--Recycler View: chats in circle -->
     <android.support.v7.widget.RecyclerView
-        android:id="@+id/recyclerViewListChats"
+        android:idGoogle="@+idGoogle/recyclerViewListChats"
         android:layout_width="match_parent"
         android:layout_height="100dp"
         android:orientation="horizontal"
@@ -19,17 +19,34 @@
     </android.support.v7.widget.RecyclerView>
 
     <!-- END Recycler View: chats in circle -->
-    <Button
-        android:id="@+id/btnTestChat"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/recyclerViewListChats"
-        android:text="createChat"/>
-    <com.stfalcon.chatkit.messages.MessagesList
-        android:id="@+id/messagesList"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="500dp"
-        android:layout_above="@+id/input"
+        android:layout_height="wrap_content"
+        android:layout_below="@+idGoogle/recyclerViewListChats"
+        android:orientation="horizontal"
+        >
+        <Button
+            android:idGoogle="@+idGoogle/btnTestCreateChat"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="createChat"/>
+        <Button
+            android:idGoogle="@+idGoogle/btnTestCreateUser"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="createUser"/>
+        <Button
+            android:idGoogle="@+idGoogle/btnTestSendMessage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="sendMessUserTest"/>
+    </LinearLayout>
+
+    <com.stfalcon.chatkit.messages.MessagesList
+        android:idGoogle="@+idGoogle/messagesList"
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
+        android:layout_above="@+idGoogle/input"
 
         app:incomingDefaultBubbleColor="?attr/color_disable"
         app:incomingDefaultBubblePressedColor="?attr/color_disable"
@@ -52,7 +69,7 @@
 
 
     <com.stfalcon.chatkit.messages.MessageInput
-        android:id="@+id/input"
+        android:idGoogle="@+idGoogle/input"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="?attr/color_secondary"

@@ -1,21 +1,19 @@
 package com.example.mrrobot.concurrent;
 
 import android.arch.lifecycle.ViewModelProviders;
+import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.mrrobot.concurrent.lib.SmartFragmentStatePagerAdapter;
-import com.example.mrrobot.concurrent.ui.chat.ChatFragment;
+import com.example.mrrobot.concurrent.ui.chat.DialogsActivity;
 import com.example.mrrobot.concurrent.ui.destination.DestinationFragment;
 import com.example.mrrobot.concurrent.ui.home.HomeFragment;
 import com.example.mrrobot.concurrent.ui.location.LocationViewModel;
@@ -48,7 +46,7 @@ public class MainActivity extends AppCompatActivity
 
     DestinationFragment destinationFragment=DestinationFragment.newInstance();
     HomeFragment homeFragment=HomeFragment.newInstance();
-    ChatFragment chatFragment=ChatFragment.newInstance();
+
     //////////////////////////////////////////////
     //////////////////////////// METHODS
     /////////////////////
@@ -79,27 +77,31 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void initUI(){
-        initToolbar();
-        // view Pager
-        this.viewPager = (ViewPager) findViewById(R.id.viewPager);
-        this.adapterViewPager = new MyPagerAdapter(getSupportFragmentManager());
-        this.viewPager.setAdapter(this.adapterViewPager);
-        this.viewPager.addOnPageChangeListener(this);
-        this.viewPager.setCurrentItem(1);
-
-
-
 
         this.textView= findViewById(R.id.outputOfPlace);
 
         this.destinationFragment.setDestinationListener(this);
 
+        findViewById(R.id.btnChats).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                getApplicationContext().startActivity(new Intent(getApplicationContext(), DialogsActivity.class));
+            }
+        });
 
     }
 
+    private void initViewPage(){
+        // view Pager
+        //this.viewPager = (ViewPager) findViewById(R.id.viewPager);
+        this.adapterViewPager = new MyPagerAdapter(getSupportFragmentManager());
+        this.viewPager.setAdapter(this.adapterViewPager);
+        this.viewPager.addOnPageChangeListener(this);
+        this.viewPager.setCurrentItem(1);
 
+    }
     private void initToolbar() {
-        this.toolbar = findViewById(R.id.toolbar);
+        //this.toolbar = findViewById(R.id.toolbar);
 
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
@@ -208,7 +210,7 @@ public class MainActivity extends AppCompatActivity
     ///////////////////////////////////////////////////
 
     public class MyPagerAdapter extends SmartFragmentStatePagerAdapter {
-        private  int NUM_ITEMS = 3;
+        private  int NUM_ITEMS = 2;
 
         public MyPagerAdapter(FragmentManager fragmentManager) {
             super(fragmentManager);
@@ -230,9 +232,6 @@ public class MainActivity extends AppCompatActivity
                 case 1: // Fragment # 0 - This will show FirstFragment different title
                     return homeFragment;
                     //return HomeFragment.newInstance();
-                case 2: // Fragment # 1 - This will show SecondFragment
-                    //return ChatFragment.newInstance();
-                    return chatFragment;
                 default:
                     return null;
             }

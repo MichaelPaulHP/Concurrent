@@ -27,12 +27,7 @@ public class HomeFragment extends Fragment {
                              @Nullable Bundle savedInstanceState) {
         View view= inflater.inflate(R.layout.home_fragment, container, false);
 
-        view.findViewById(R.id.btnChats).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                getContext().startActivity(new Intent(getContext(), DialogsActivity.class));
-            }
-        });
+
 
         return view;
     }
