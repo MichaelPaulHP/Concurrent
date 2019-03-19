@@ -78,6 +78,8 @@ public class MainActivity extends AppCompatActivity
 
     private void initUI(){
 
+        findViewById(R.id.optionsTop).bringToFront();
+        findViewById(R.id.optionsBot).bringToFront();
         this.textView= findViewById(R.id.outputOfPlace);
 
         this.destinationFragment.setDestinationListener(this);

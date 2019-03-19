@@ -6,43 +6,49 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity">
-
-    <com.mapbox.mapboxsdk.maps.MapView
-        android:idGoogle="@+idGoogle/mapView"
-        android:layout_width="150dp"
-        android:layout_height="500dp"
-
-        android:layout_centerHorizontal="true"
-        mapbox:mapbox_cameraTargetLat="-16.73581"
-        mapbox:mapbox_cameraTargetLng="-73.99155"
-        mapbox:mapbox_cameraZoom="11" />
-
-    <RelativeLayout
-        android:layout_marginTop="30dp"
-        android:layout_width="match_parent"
-        android:layout_alignParentTop="true"
-        android:layout_height="60dp">
-
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-           android:layout_centerVertical="true"
-            android:text="location" />
-        <Button
-            android:idGoogle="@+idGoogle/btnChats"
-            android:layout_alignParentEnd="true"
-            android:layout_centerVertical="true"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="chat"
-            />
-    </RelativeLayout>
-
-
-
-
     <!--MAP-->
     <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <com.mapbox.mapboxsdk.maps.MapView
+            android:id="@+id/mapView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+
+            android:background="@color/transparent"
+            mapbox:mapbox_cameraTargetLat="-16.73581"
+            mapbox:mapbox_cameraTargetLng="-73.99155"
+            mapbox:mapbox_cameraZoom="11" />
+    </LinearLayout>
+
+
+    <RelativeLayout
+        android:id="@+id/optionsTop"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="30dp">
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="location" />
+
+        <Button
+            android:id="@+id/btnChats"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="150dp"
+            android:stateListAnimator="@null"
+            android:text="chat"
+            android:translationZ="10000dp" />
+
+
+    </RelativeLayout>
+
+    <LinearLayout
+        android:id="@+id/optionsBot"
         android:layout_marginBottom="30dp"
         android:layout_width="match_parent"
         android:layout_height="100dp"
@@ -51,7 +57,7 @@
         android:orientation="vertical"
         android:background="@color/colorPrimary">
         <TextView
-            android:idGoogle="@+idGoogle/outputOfPlace"
+            android:id="@+id/outputOfPlace"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"

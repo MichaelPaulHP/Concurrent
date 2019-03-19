@@ -43,12 +43,12 @@ public class DialogsActivity extends AppCompatActivity {
                 chatViewModel.testCreateChat();
             }
         });
-        findViewById(R.id.btnTestCreateUser).setOnClickListener(new View.OnClickListener() {
+        /*findViewById(R.id.btnTestCreateUser).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 chatViewModel.testCreateUser();
             }
-        });
+        });*/
         findViewById(R.id.btnTestSendMessage).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

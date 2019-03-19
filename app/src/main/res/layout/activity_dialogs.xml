@@ -9,7 +9,7 @@
 
     <!--Recycler View: chats in circle -->
     <android.support.v7.widget.RecyclerView
-        android:idGoogle="@+idGoogle/recyclerViewListChats"
+        android:id="@+id/recyclerViewListChats"
         android:layout_width="match_parent"
         android:layout_height="100dp"
         android:orientation="horizontal"
@@ -22,31 +22,32 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+idGoogle/recyclerViewListChats"
+        android:layout_below="@+id/recyclerViewListChats"
         android:orientation="horizontal"
         >
         <Button
-            android:idGoogle="@+idGoogle/btnTestCreateChat"
+            android:id="@+id/btnTestCreateChat"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="createChat"/>
         <Button
-            android:idGoogle="@+idGoogle/btnTestCreateUser"
+            android:id="@+id/btnTestCreateUser"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="createUser"/>
         <Button
-            android:idGoogle="@+idGoogle/btnTestSendMessage"
+            android:id="@+id/btnTestSendMessage"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="sendMessUserTest"/>
     </LinearLayout>
 
     <com.stfalcon.chatkit.messages.MessagesList
-        android:idGoogle="@+idGoogle/messagesList"
+
+        android:id="@+id/messagesList"
         android:layout_width="match_parent"
         android:layout_height="300dp"
-        android:layout_above="@+idGoogle/input"
+        android:layout_above="@+id/input"
 
         app:incomingDefaultBubbleColor="?attr/color_disable"
         app:incomingDefaultBubblePressedColor="?attr/color_disable"
@@ -69,7 +70,7 @@
 
 
     <com.stfalcon.chatkit.messages.MessageInput
-        android:idGoogle="@+idGoogle/input"
+        android:id="@+id/input"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="?attr/color_secondary"
