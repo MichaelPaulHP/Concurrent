@@ -13,5 +13,23 @@
         <item name="color_disable">#DDD</item> <!-- color mas transparent at color primary -->
 
     </style>
+    <!--Yellow-->
+    <style name="AppThemeYellow" parent="Theme.AppCompat.Light.NoActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">#FFCA1C</item>
+        <item name="colorPrimaryDark">#12171A</item>
+        <item name="colorAccent">@color/colorAccent</item>
 
+        <item name="color_primary" >#FFCA1C</item>
+        <item name="color_secondary" >#393939</item>
+        <item name="color_accent">#C08118</item>
+        <item name="color_disable">#FFF</item> <!-- color mas 12171A  393939transparent at color primary -->
+        <item name="android:windowAnimationStyle">@style/WindowAnimationTran</item>
+
+
+    </style>
+    <style name="WindowAnimationTran">
+        <item name="android:windowEnterAnimation">@android:anim/fade_in</item>
+        <item name="android:windowExitAnimation">@android:anim/fade_out</item>
+    </style>
 </resources>

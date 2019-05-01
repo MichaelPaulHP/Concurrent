@@ -9,7 +9,8 @@
     <!--MAP-->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        >
 
         <com.mapbox.mapboxsdk.maps.MapView
             android:id="@+id/mapView"
@@ -19,7 +20,7 @@
             android:background="@color/transparent"
             mapbox:mapbox_cameraTargetLat="-16.73581"
             mapbox:mapbox_cameraTargetLng="-73.99155"
-            mapbox:mapbox_cameraZoom="11" />
+            mapbox:mapbox_cameraZoom="15" />
     </LinearLayout>
 
 
@@ -28,45 +29,77 @@
         android:layout_width="match_parent"
         android:layout_height="60dp"
         android:layout_alignParentTop="true"
-        android:layout_marginTop="30dp">
+        android:layout_marginStart="40dp"
+        android:layout_marginTop="30dp"
+        android:layout_marginEnd="40dp">
+        <android.support.v7.widget.CardView
 
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="location" />
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            app:cardBackgroundColor="?attr/color_secondary"
+            app:cardCornerRadius="25dp">
+            <ImageView
+                android:layout_gravity="center"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@drawable/ic_location_on_black_24dp"
+                android:tint="?attr/color_primary"
+                />
+        </android.support.v7.widget.CardView>
+        <!--<de.hdodenhof.circleimageview.CircleImageView-->
+            <!--android:layout_width="66dp"-->
+            <!--android:layout_height="match_parent"-->
+            <!--android:background="?attr/color_secondary"-->
+            <!--android:src="@drawable/ic_location_on_black_24dp"-->
+            <!--android:tint="?attr/color_primary" />-->
 
-        <Button
-            android:id="@+id/btnChats"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="150dp"
-            android:stateListAnimator="@null"
-            android:text="chat"
-            android:translationZ="10000dp" />
+        <android.support.v7.widget.CardView
+
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_alignParentEnd="true"
+            app:cardBackgroundColor="?attr/color_secondary"
+            app:cardCornerRadius="25dp">
+            <ImageView
+                android:id="@+id/btnChats"
+                android:layout_gravity="center"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@drawable/ic_supervisor_account_black_24dp"
+                android:tint="?attr/color_primary"
+                />
+        </android.support.v7.widget.CardView>
+        <!--<de.hdodenhof.circleimageview.CircleImageView-->
+        <!--android:layout_width="66dp"-->
+        <!--android:layout_height="match_parent"-->
+        <!--android:layout_alignParentEnd="true"-->
+        <!--android:id="@+id/btnChats"-->
+        <!--android:background="?attr/color_secondary"-->
+        <!--android:tint="#FFCA1C"-->
+        <!--android:src="@drawable/ic_supervisor_account_black_24dp"-->
+        <!--app:civ_border_width="0dp"-->
+        <!--app:civ_border_color="@color/colorAccent"/>-->
 
 
     </RelativeLayout>
 
     <LinearLayout
         android:id="@+id/optionsBot"
-        android:layout_marginBottom="30dp"
         android:layout_width="match_parent"
-        android:layout_height="100dp"
-        android:layout_alignParentBottom="true"
+        android:layout_height="150dp"
         android:layout_alignParentEnd="true"
-        android:orientation="vertical"
-        android:background="@color/colorPrimary">
+        android:layout_alignParentBottom="true"
+        android:background="?attr/color_primary"
+        android:orientation="vertical">
+
         <TextView
             android:id="@+id/outputOfPlace"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
             android:text="SALIDA"
-            android:textColor="#222"
-            />
+            android:textColor="#222" />
     </LinearLayout>
-
-
 
 
 </RelativeLayout>

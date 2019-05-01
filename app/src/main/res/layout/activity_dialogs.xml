@@ -6,23 +6,53 @@
     android:layout_height="match_parent"
     tools:context=".ui.chat.DialogsActivity">
 
-
-    <!--Recycler View: chats in circle -->
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/recyclerViewListChats"
+    <RelativeLayout
+        android:id="@+id/optionsTop"
         android:layout_width="match_parent"
-        android:layout_height="100dp"
-        android:orientation="horizontal"
-        android:scrollbars="horizontal"
+        android:layout_height="60dp"
         android:layout_alignParentTop="true"
-        >
-    </android.support.v7.widget.RecyclerView>
+        android:layout_marginStart="40dp"
+        android:layout_marginTop="30dp"
+        android:background="?attr/color_secondary"
+        android:layout_marginEnd="40dp">
+        <android.support.v7.widget.CardView
 
-    <!-- END Recycler View: chats in circle -->
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_alignParentEnd="true"
+            app:cardBackgroundColor="?attr/color_secondary"
+            app:cardCornerRadius="25dp">
+            <ImageView
+                android:id="@+id/btnChats"
+                android:layout_gravity="center"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@drawable/ic_supervisor_account_black_24dp"
+                android:tint="?attr/color_primary"
+                />
+        </android.support.v7.widget.CardView>
+
+        <!--Recycler View: chats in circle -->
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/recyclerViewListChats"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginEnd="55dp"
+            android:orientation="horizontal"
+            android:scrollbars="horizontal"
+            android:layout_alignParentTop="true"
+            >
+        </android.support.v7.widget.RecyclerView>
+
+        <!-- END Recycler View: chats in circle -->
+
+    </RelativeLayout>
+
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/recyclerViewListChats"
+        android:layout_below="@+id/optionsTop"
         android:orientation="horizontal"
         >
         <Button
@@ -78,9 +108,9 @@
         app:attachmentButtonDefaultIconColor="@android:color/transparent"
         app:attachmentButtonDefaultIconPressedColor="@android:color/transparent"
         app:inputButtonBackground="@android:color/transparent"
-        app:inputButtonDefaultIconColor="?attr/color_secondary"
+        app:inputButtonDefaultIconColor="?attr/color_primary"
         app:inputButtonDefaultIconDisabledColor="?attr/color_disable"
-        app:inputTextColor="?attr/color_primary"
+        app:inputTextColor="@color/white"
         android:layout_alignParentBottom="true"
         app:inputHint="@string/hint_enter_a_message"
         app:showAttachmentButton="true"/>
