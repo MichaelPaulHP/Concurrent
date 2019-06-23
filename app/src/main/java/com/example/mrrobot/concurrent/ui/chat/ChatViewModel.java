@@ -8,8 +8,10 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 
+import com.example.mrrobot.concurrent.Firebase.DB.ChatData;
 import com.example.mrrobot.concurrent.models.Chat;
 import com.example.mrrobot.concurrent.models.Message;
+import com.example.mrrobot.concurrent.models.MessagePrototypeFactory;
 import com.example.mrrobot.concurrent.models.User;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.ChildEventListener;
@@ -24,6 +26,7 @@ import com.stfalcon.chatkit.messages.MessagesListAdapter;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Random;
 
 public class ChatViewModel extends ViewModel implements
         MessageInput.InputListener,
@@ -50,17 +53,21 @@ public class ChatViewModel extends ViewModel implements
 
         this.user=User.getCurrentUser();
         user.listeners = this; // listener
-        User.findAndUpdateOrSave(this.user);
+
 
         initMessagesAdapter();
         initChatsAdapter();
+        // perimo add this user to db , create a chat , add Participant, jointoCchat, get mis chats
     }
 
-
-    private void createChat() {
-        final Chat chat = new Chat();
+    private void createChatAndJoin() {
+        Random random = new Random();
+        String name="MY_CHAT"+random.nextInt();
+        final Chat chat = new Chat(name,this.user.getIdGoogle());
         chat.chatListener = this;
-        Chat.saveChatAndAddUser("first chat", this.user, chat);
+        this.user.saveChatAndJoint(chat);
+        //ChatData.saveChat(this.user,chat);
+        //Chat.saveChatAndAddUser("first chat", this.user, chat);
 
 //
 //                .addOnSuccessListener(new OnSuccessListener<Void>() {
@@ -119,7 +126,7 @@ public class ChatViewModel extends ViewModel implements
     }
 
     private void initChatsAdapter() {
-        this.chatsAdapter = new ChatsAdapter(this.user.myChats);
+        this.chatsAdapter = new ChatsAdapter(this.user.getMyChats());
         this.chatsAdapter.setOnItemClickListener(this);
     }
 
@@ -146,7 +153,7 @@ public class ChatViewModel extends ViewModel implements
      * @return chat selected
      */
     private Chat getCurrentChat() {
-        return this.user.myChats.get(0);
+        return this.user.getMyChats().get(0);
     }
 
 
@@ -160,25 +167,28 @@ public class ChatViewModel extends ViewModel implements
     }
 
     private Message testCreateMessage() {
+        Message message = MessagePrototypeFactory.getPrototype("meMessage");
         Calendar calendar = Calendar.getInstance();
-        Message message = new Message("message de userTest", this.userTest);
+        message.setText("textcreateMessage");
         return message;
     }
 
-    public void testCreateChat() {
-        this.createChat();
+
+    public void testCreateChatAndJoin() {
+        this.createChatAndJoin();
     }
 
     // call on click
-    public void testSaveMessage() {
+    /*public void testSaveMessage() {
         // TEST show messages
         Message messageOfTestUser = testCreateMessage();
         Chat.saveMessage(getCurrentChat(), messageOfTestUser);
-    }
-
-    /*public void testCreateUser(){
-        Chat.saveUser(getCurrentChat().getIdParticipants(),userTest);
     }*/
+
+    public void testCreateUser(){
+        this.user.save();
+        //Chat.saveUser(getCurrentChat().getIdParticipants(),userTest);
+    }
 
 
     /////////////////////////////////////////////////////////////
@@ -203,10 +213,10 @@ public class ChatViewModel extends ViewModel implements
     public boolean onSubmit(CharSequence input) {
 
         Calendar calendar = Calendar.getInstance();
-        Message message = new Message(input.toString(), user);
+        //Message message = new Message(input.toString(), user);
 
-        Chat chatCurrent = getCurrentChat();
-        Chat.saveMessage(chatCurrent, message);
+        //Chat chatCurrent = getCurrentChat();
+        //Chat.saveMessage(chatCurrent, message);
         //messagesAdapter.addToStart(message, true);
         return true;
     }
@@ -246,7 +256,7 @@ public class ChatViewModel extends ViewModel implements
     @Override
     public void onItemClick(int position, View v) {
         // show messages if
-        showMessages(this.user.myChats.get(position));
+        //showMessages(this.user.myChats.get(position));
 
 
         //messagesAdapter.addToStart(messageOfTestUser, true);

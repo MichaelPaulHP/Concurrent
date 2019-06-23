@@ -19,98 +19,42 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class Message implements IMessage
+public class Message implements IMessage,Cloneable
 {
 
-
-
     private User user;
+
     private Date createAt;
-    // firebase
-    public String text;
-    public String userName;
-    public String userIdGoogle;
-    public Long createAtLong;
+    private String text;
+    private String id;
 
-    public Message() {
-
-    }
-    public Message (String text, User user) {
-        this.text = text;
+    public Message(User user) {
         this.user = user;
-        this.userName=user.getName();
-        this.userIdGoogle =user.getIdGoogle();
         this.createAt = Calendar.getInstance().getTime();
-        this.createAtLong=createAt.getTime();
     }
-    /**
-     * save a message in database
-     *
-     * @param message with text,user,create add
-     */
-    public static Task<Void> saveMessage(String chatKey, Message message) {
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-        final DatabaseReference dbReferenceMessages;
-        dbReferenceMessages = database.getReference("/RoomsChat/Messages");
-        return dbReferenceMessages.child(chatKey).push().setValue(message);
-    }
-    public static void getMessages(final String chatKey, List<Message> messagesContainer){
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-        final DatabaseReference dbReferenceMessages;
-        dbReferenceMessages = database.getReference("/RoomsChat/Messages");
-        dbReferenceMessages.child(chatKey).addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                if (dataSnapshot.exists()) {
-                    //messagesContainer.putAll((Map) dataSnapshot.getValue());
-                    dbReferenceMessages.child(chatKey).removeEventListener(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-
-                        }
-
-                        @Override
-                        public void onCancelled(@NonNull DatabaseError databaseError) {
-
-                        }
-                    });
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
-        });
-
-    }
-
-
-
-
 
     public void setUser(User user) {
         this.user = user;
     }
 
-    public void setId(java.lang.String id) {
-        this.userIdGoogle = id;
+    public void setCreateAt(Date createAt) {
+        this.createAt = createAt;
     }
 
-    public void setCreateAt(Long l){
-        this.createAtLong=l;
-        this.createAt= Calendar.getInstance().getTime();
-        this.createAt.setTime(l);
+    public void setText(String text) {
+        this.text = text;
     }
+
 
     /**
      * Returns message identifier
      *
      * @return the message id
      */
+
     @Override
     public String getId() {
-        return this.userIdGoogle;
+        return this.id;
     }
 
     /**
@@ -143,18 +87,8 @@ public class Message implements IMessage
         return this.createAt;
     }
 
-    @Exclude
-    public Map<String, Object> toMap() {
-        HashMap<String, Object> result = new HashMap<>();
-        //result.put("id", this.id);
-        result.put("text", this.text);
-        result.put("userIdGoogle", this.userIdGoogle);
-        result.put("userName", this.userName);
-        result.put("createdAtLong", this.createAtLong);
-
-
-        return result;
+    @Override
+    public Message clone() throws CloneNotSupportedException {
+        return (Message) super.clone();
     }
-
-
 }
