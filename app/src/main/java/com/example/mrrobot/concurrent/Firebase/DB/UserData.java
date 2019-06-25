@@ -1,6 +1,7 @@
 package com.example.mrrobot.concurrent.Firebase.DB;
 
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.example.mrrobot.concurrent.models.Chat;
@@ -9,12 +10,14 @@ import com.google.android.gms.tasks.OnCanceledListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +36,10 @@ public class UserData {
         this.idGoogle = user.getIdGoogle();
         this.name = user.getName();
         this.numChats=user.getNumChats();
+    }
+    public User toUser(){
+        User user = new User(this.idGoogle,this.idGoogle,this.name,this.avatar);
+        return user;
     }
 
     public static Task<Void> save(User user) {
@@ -77,6 +84,27 @@ public class UserData {
         childUpdates.put("/Chats/" + chat.getKey()+"/numOfParticipant" , chat.getNumOfParticipants()+1);// Chat add cant
 
         return dbReferenceChat.updateChildren(childUpdates);
+    }
+    public static void getMyChats(User user,ValueEventListener listener){
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference dbReferenceChat;
+        dbReferenceChat = database.getReference("/RoomsChat/Users/"+user.getIdGoogle()+"/myChats");
+        dbReferenceChat.addListenerForSingleValueEvent(listener);
+        /*dbReferenceChat.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                List<Chat> myChats= new ArrayList<>();
+                for (DataSnapshot postSnapshot: dataSnapshot.getChildren()) {
+                    ChatData newChat = postSnapshot.getValue(ChatData.class);
+                    myChats.add(newChat);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });*/
     }
 
 

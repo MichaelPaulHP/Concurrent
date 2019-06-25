@@ -8,7 +8,7 @@ public class MessagePrototypeFactory {
     private static final Map<String, Message> prototypes = new HashMap<>();
 
     static {
-        prototypes.put("meMessage", new Message(User.getCurrentUser()));
+        prototypes.put("myMessage", new Message(User.getCurrentUser()));
         prototypes.put("otherMessage", new Message(null));
     }
 

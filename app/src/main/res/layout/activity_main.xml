@@ -39,6 +39,7 @@
             app:cardBackgroundColor="?attr/color_secondary"
             app:cardCornerRadius="25dp">
             <ImageView
+                android:id="@+id/btnFormLocation"
                 android:layout_gravity="center"
                 android:layout_width="40dp"
                 android:layout_height="40dp"

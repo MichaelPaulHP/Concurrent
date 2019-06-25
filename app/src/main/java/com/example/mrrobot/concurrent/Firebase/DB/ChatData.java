@@ -1,12 +1,20 @@
 package com.example.mrrobot.concurrent.Firebase.DB;
 
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+
 import com.example.mrrobot.concurrent.models.Chat;
 import com.example.mrrobot.concurrent.models.User;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,6 +24,8 @@ public class ChatData {
     String key;
     String name;
     Double numOfParticipant;
+    Double numOfMessage=0.0;
+
     public ChatData() {
 
     }
@@ -24,7 +34,22 @@ public class ChatData {
         this.key = chat.getKey();
         this.name = chat.getName();
         this.numOfParticipant = chat.getNumOfParticipants();
-
+        this.numOfMessage=chat.getNumOfMessage();
+    }
+    public Chat toChat(){
+        Chat chat = new Chat();
+        Date date = new Date(this.createAt);
+        chat.setCreatedAt(date);
+        chat.setKey(this.key);
+        chat.setName(this.name);
+        chat.setNumOfParticipants(this.numOfParticipant);
+        chat.setNumOfMessage(this.numOfMessage);
+        return chat;
+    }
+    public static void getParticipants(String chatKey,ValueEventListener valueEventListener ){
+        final FirebaseDatabase database = FirebaseDatabase.getInstance();
+        final DatabaseReference dbReferenceChats = database.getReference("/RoomsChat/Chats/"+chatKey+"/participants");
+        dbReferenceChats.addListenerForSingleValueEvent(valueEventListener);
     }
 
     public static Task<Void> saveChat(final Chat chatSaved){
@@ -42,6 +67,18 @@ public class ChatData {
         // save chat
         return dbReferenceChats.child(idChat).setValue(chatData);
 
+    }
+
+    public static void setListenerOnNewMessage(String chatKey,ChildEventListener childEventListener){
+        final FirebaseDatabase database = FirebaseDatabase.getInstance();
+        final DatabaseReference dbReferenceChats = database.getReference("/RoomsChat/Messages/"+chatKey);
+
+        dbReferenceChats.addChildEventListener(childEventListener);
+    }
+    public static void getMyMessages(String chatKey,ValueEventListener valueEventListener){
+        final FirebaseDatabase database = FirebaseDatabase.getInstance();
+        final DatabaseReference dbReferenceChats = database.getReference("/RoomsChat/Messages/"+chatKey);
+        dbReferenceChats.addListenerForSingleValueEvent(valueEventListener);
     }
 
 //

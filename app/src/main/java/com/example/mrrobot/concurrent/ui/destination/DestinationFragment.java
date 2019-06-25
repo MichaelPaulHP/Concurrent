@@ -1,11 +1,15 @@
 package com.example.mrrobot.concurrent.ui.destination;
 
+import android.app.Dialog;
 import android.arch.lifecycle.ViewModelProviders;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,45 +25,76 @@ import com.mapbox.mapboxsdk.maps.MapView;
 
 import java.util.Arrays;
 
-public class DestinationFragment extends Fragment {
+public class DestinationFragment extends DialogFragment {
     String TAG = "autocompleteDestination";
     private DestinationViewModel mViewModel;
     DestinationListener destinationListener;
+    AutocompleteSupportFragment autocompleteFragment;
 
+    public DestinationFragment(){
+        // Required empty public constructor
+    }
 
     public static DestinationFragment newInstance() {
         return new DestinationFragment();
     }
 
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
-                             @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.destination_fragment, container, false);
+    public void onStart() {
+        super.onStart();
+        Dialog dialog = getDialog();
+        if (dialog != null) {
+            int width = ViewGroup.LayoutParams.MATCH_PARENT;
+            int height = ViewGroup.LayoutParams.MATCH_PARENT;
+            dialog.getWindow().setLayout(width,height);
+        }
     }
 
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setStyle(DialogFragment.STYLE_NORMAL, R.style.FullScreenDialogStyle);
 
+    }
+
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
+        View view=inflater.inflate(R.layout.destination_fragment, container, false);
+        initializeAutocompleteSupportFragment();
+        return view;
+    }
+
+    @NonNull
+    @Override
+    public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
+        Dialog dialog= super.onCreateDialog(savedInstanceState);
+        dialog.setCancelable(true);
+        //dialog.getWindow().setBackgroundDrawable(new ColorDrawable(android.graphics.Color.TRANSPARENT));
+        dialog.getWindow().setGravity(Gravity.TOP);
+        return dialog;
+    }
 
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         // view models
-        mViewModel = ViewModelProviders.of(this).get(DestinationViewModel.class);
-
-
+        //mViewModel = ViewModelProviders.of(this).get(DestinationViewModel.class);
     }
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
 
         super.onViewCreated(view, savedInstanceState);
         // Initialize the AutocompleteSupportFragment
-        initializeAutocompleteSupportFragment();
+
+
+
     }
     private void initializeAutocompleteSupportFragment() {
-        //mapFragment =  getChildFragmentManager().findFragmentById(R.id.map2);
-        AutocompleteSupportFragment autocompleteFragment = (AutocompleteSupportFragment)
-                getChildFragmentManager().findFragmentById(R.id.autocomplete_fragment);
-
-
+        if(autocompleteFragment==null) {
+            autocompleteFragment = (AutocompleteSupportFragment)
+                    getFragmentManager().findFragmentById(R.id.autocomplete_fragment);
+        }
         //autocompleteFragment.setTypeFilter(TypeFilter.ADDRESS);
         autocompleteFragment.setCountry("PE");
 
@@ -90,7 +125,14 @@ public class DestinationFragment extends Fragment {
     }
 
     // LIFE CYCLE
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
 
+        if (this.autocompleteFragment != null)
+            getFragmentManager().beginTransaction().remove(this.autocompleteFragment).commit();
+
+    }
 
 
     // INTERFACE

@@ -28,6 +28,9 @@ public class Message implements IMessage,Cloneable
     private String text;
     private String id;
 
+    public Message() {
+    }
+
     public Message(User user) {
         this.user = user;
         this.createAt = Calendar.getInstance().getTime();

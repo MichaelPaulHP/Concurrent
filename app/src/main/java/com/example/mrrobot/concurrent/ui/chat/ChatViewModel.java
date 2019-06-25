@@ -41,93 +41,28 @@ public class ChatViewModel extends ViewModel implements
     User userTest;
     //Chat chatTest = new Chat("testChat","idChatTest1","idMessagesTest","idUser");
 
-    ChatRoomListener chatRoomListener;
-
 
     ObservableField<Integer> count = new ObservableField<>(0);
     private MessagesListAdapter<Message> messagesAdapter;
     private ChatsAdapter chatsAdapter;
     private ImageLoader imageLoader;
-
+    private int indexChat=0;
     public ChatViewModel() {
 
         this.user=User.getCurrentUser();
-        user.listeners = this; // listener
-
-
+        // listener user
+        user.userListeners=this;
+        user.chatListener=this;
         initMessagesAdapter();
         initChatsAdapter();
-        // perimo add this user to db , create a chat , add Participant, jointoCchat, get mis chats
-    }
-
-    private void createChatAndJoin() {
-        Random random = new Random();
-        String name="MY_CHAT"+random.nextInt();
-        final Chat chat = new Chat(name,this.user.getIdGoogle());
-        chat.chatListener = this;
-        this.user.saveChatAndJoint(chat);
-        //ChatData.saveChat(this.user,chat);
-        //Chat.saveChatAndAddUser("first chat", this.user, chat);
-
-//
-//                .addOnSuccessListener(new OnSuccessListener<Void>() {
-//            @Override
-//            public void onSuccess(Void aVoid) {
-//                addChat(chat);
-//                chat.addMessagesListener(new ChildEventListener() {
-//                    @Override
-//                    public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-//                        //{ key = -L_P69pGl7VJcXTzmbY8, value = {createdAtLong=1551995022664, text=created byCURRENT USER, userName=CURRENT USER, userIdGoogle=0} } s: null
-//                        // key = -L_P69pGl7VJcXTzmbY8 is idMessage
-//                        Log.i("CHAT","dataSnapshot:"+dataSnapshot.toString()+" s: "+s);
-//                        Message message=dataSnapshot.getValue(Message.class);
-//                        // set message ID
-//                        // set user
-//                        message.setCreateAtFromLong(message.createAtLong);
-//                        User userEmit=chat.findUserById(message.userIdGoogle);
-//                        message.setUser(userEmit);
-//                        chat.addMessage(message);
-//                        messagesAdapter.addToStart(message,true);
-//
-//                    }
-//                    @Override
-//                    public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) { }
-//                    @Override
-//                    public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) { }
-//                    @Override
-//                    public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) { }
-//                    @Override
-//                    public void onCancelled(@NonNull DatabaseError databaseError) { }
-//                });
-//                chat.addUsersListener(new ChildEventListener() {
-//                    @Override
-//                    public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-//                        User user=dataSnapshot.getValue(User.class);
-//                        // user with name and avatar
-//                        user.setId(dataSnapshot.getKey()); // set firebase's key
-//                        chat.addUser(user);
-//                        // message for all
-//                        Chat.saveMessage(chat.idMessages,new Message("hola me uni",user,Chat.getNowDate()));
-//                    }
-//
-//                    @Override
-//                    public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) { }
-//                    @Override
-//                    public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) { }
-//                    @Override
-//                    public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) { }
-//                    @Override
-//                    public void onCancelled(@NonNull DatabaseError databaseError) { }
-//                });
-//                //ChatViewModel.this.chatRoomListener.onNewChat(chat);
-//            }
-//        });
-
+        this.user.requestMyChats();
+        // actualizar mis datos con los de DB
     }
 
     private void initChatsAdapter() {
         this.chatsAdapter = new ChatsAdapter(this.user.getMyChats());
         this.chatsAdapter.setOnItemClickListener(this);
+
     }
 
     private void initMessagesAdapter() {
@@ -147,6 +82,14 @@ public class ChatViewModel extends ViewModel implements
 //                });
     }
 
+    private void createChatAndJoin() {
+        Random random = new Random();
+        String name="MY_CHAT"+random.nextInt();
+        final Chat chat = new Chat(name,this.user.getIdGoogle());
+        chat.chatListener = this;
+        this.user.saveChatAndJoint(chat);
+    }
+
     /**
      * get the chat current
      *
@@ -161,10 +104,6 @@ public class ChatViewModel extends ViewModel implements
         this.messagesAdapter.addToEnd(chat.getMessages(), true);
     }
 
-
-    public void setChatRoomListener(ChatRoomListener chatRoomListener) {
-        this.chatRoomListener = chatRoomListener;
-    }
 
     private Message testCreateMessage() {
         Message message = MessagePrototypeFactory.getPrototype("meMessage");
@@ -212,12 +151,12 @@ public class ChatViewModel extends ViewModel implements
     @Override
     public boolean onSubmit(CharSequence input) {
 
-        Calendar calendar = Calendar.getInstance();
-        //Message message = new Message(input.toString(), user);
+        Chat chatCurrent=getCurrentChat();
+        Message message= MessagePrototypeFactory.getPrototype("myMessage");
+        message.setText(input.toString());
+        message.setCreateAt(Chat.getNowDate());
+        chatCurrent.saveMessage(message);
 
-        //Chat chatCurrent = getCurrentChat();
-        //Chat.saveMessage(chatCurrent, message);
-        //messagesAdapter.addToStart(message, true);
         return true;
     }
 
@@ -255,6 +194,12 @@ public class ChatViewModel extends ViewModel implements
      */
     @Override
     public void onItemClick(int position, View v) {
+        if(this.indexChat!=position){
+            Chat chat = this.user.getMyChats().get(position);
+            this.messagesAdapter.clear();
+            this.messagesAdapter.addToEnd(chat.getMessages(),true);
+        }
+
         // show messages if
         //showMessages(this.user.myChats.get(position));
 
@@ -273,7 +218,7 @@ public class ChatViewModel extends ViewModel implements
 
     /////////////////////////////////////////////////////////////
     ////////// CHAT AND USER LISTENERS
-    //////////////////////////////////////////////////////////
+    ///////////////////////////////////
 
     /**
      * new message x in chat chat
@@ -292,20 +237,15 @@ public class ChatViewModel extends ViewModel implements
     /**
      * when this user join to chat x
      *
-     * @param x chat saved in DB
      */
     @Override
-    public void onJoinToChat(Chat x) {
-        if (x == null) {
-            this.chatsAdapter.notifyDataSetChanged();
-        } else {
-            this.chatsAdapter.notifyNewChatInserted();
-        }
+    public void onJoinToChat() {
+        this.chatsAdapter.notifyNewChatInserted();
     }
 
 
     /////////////////////////
-    ////////// CHAT AND USER LISTENERS
+    ////////// END  CHAT AND USER LISTENERS
     ////////////////////////////////////////////////////////////
 
 
@@ -317,6 +257,9 @@ public class ChatViewModel extends ViewModel implements
         return chatsAdapter;
     }
 
+
+
+
     private void initImageLoader() {
         this.imageLoader = new ImageLoader() {
             @Override
@@ -326,9 +269,6 @@ public class ChatViewModel extends ViewModel implements
         };
     }
 
-    public interface ChatRoomListener {
-        void onNewChat(Chat chat);
-    }
 
 
 }

@@ -9,6 +9,7 @@ import android.widget.ImageView;
 
 import com.example.mrrobot.concurrent.Firebase.DB.ChatData;
 import com.example.mrrobot.concurrent.Firebase.DB.MessageData;
+import com.example.mrrobot.concurrent.Firebase.DB.UserData;
 import com.example.mrrobot.concurrent.R;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -20,6 +21,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.Exclude;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.IgnoreExtraProperties;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -38,7 +40,8 @@ public class Chat {
     private String createdBy;
     private Date createdAt;
     private String key;
-    private Double numOfParticipants=0.0;
+    private Double numOfParticipants = 0.0;
+    private Double numOfMessage = 0.0;
 
     private List<Message> messages = new ArrayList<>();
     private List<User> participants = new ArrayList<>();
@@ -56,70 +59,33 @@ public class Chat {
         this.name = name;
         this.createdBy = createdBy;
         this.numOfParticipants = 0.0;
+        this.numOfMessage = 0.0;
         this.createdAt = Calendar.getInstance().getTime();
     }
 
-
-
-    /*public static void saveMessage(Chat chat,Message m){
-        final FirebaseDatabase database = FirebaseDatabase.getInstance();
-        // REFERENCES
-        //  CHAT
-        final DatabaseReference dbReferenceChat = database.getReference("/RoomsChat/Chats/"+chat.getKey()+"/");
-        String keyMessage = dbReferenceChat.push().getKey();
-        m.setId(keyMessage);
-        // add message to chat
-        chat.addMessage(m);
-        dbReferenceChat.child("messages").setValue(chat.getMessages());// EDIT solo add a message
-        //save message
-        final DatabaseReference dbReferenceMessage = database.getReference("/RoomsChat/Messages/"+chat.getKey()+"/");
-        dbReferenceMessage.child(keyMessage).setValue(m);
-
-    }*/
-
-
-
-
-
-    /**
-     * set listener for child Message of this chat
-     *
-     */
-    private void addMessagesListener() {
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-        final DatabaseReference dbReferenceMessages;
-        dbReferenceMessages = database.getReference("/RoomsChat/Messages/"+this.getKey());
-        dbReferenceMessages.addChildEventListener(new ChildEventListener() {
-            @Override
-            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-                MessageData messageData=dataSnapshot.getValue(MessageData.class);
-                // messageData is this user?
-                //message.setId(dataSnapshot.getKey());
-                //chatListener.onNewMessage(Chat.this,message);
-            }
-
-            @Override
-            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-
-            }
-
-            @Override
-            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
-
-            }
-
-            @Override
-            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
-        });
-
+    public void saveMessage(final Message message) {
+        MessageData.saveMessage(this.key, this.numOfMessage, message);
     }
+
+    public void requestMyMessages() {
+        ChatData.getMyMessages(this.key, myMessagesSaved);
+    }
+
+    public void setListenerForNewMessagesFromDB() {
+        ChatData.setListenerOnNewMessage(this.key, onNewMessageListener);
+    }
+    public void requestParticipants(){
+        ChatData.getParticipants(this.key,getParticipantsFromDB);
+    }
+    /**
+     * add a message in list
+     */
+    public void addMessage(Message message) {
+        this.messages.add(message);
+        this.numOfMessage=numOfMessage+1;
+        chatListener.onNewMessage(Chat.this, message);
+    }
+
 
 //    public void addUsersListener(ChildEventListener childEventListener) {
 //        FirebaseDatabase database = FirebaseDatabase.getInstance();
@@ -139,8 +105,8 @@ public class Chat {
      */
     public void addParticipants(final User user) {
 
-        if(this.numOfParticipants==null){
-            this.numOfParticipants=0.0;
+        if (this.numOfParticipants == null) {
+            this.numOfParticipants = 0.0;
         }
         /*ChatData.addParticipant(this,user).addOnSuccessListener(new OnSuccessListener<Void>() {
             @Override
@@ -151,22 +117,18 @@ public class Chat {
             }
         });*/
         this.participants.add(user);
-        this.numOfParticipants=numOfParticipants+1;
+        this.numOfParticipants = numOfParticipants + 1;
         // add message type LOG
     }
 
-    public void saveThisChat(){
+    public void saveThisChat() {
         ChatData.saveChat(this);
     }
-    public void addMessage(Message message) {
-        this.messages.add(message);
-
-    }
 
 
-    public User findParticipantById(String id) {
+    public User findParticipantByIdGoogle(String id) {
         for (User user : participants) {
-            if (user.getId().equals(id)) {
+            if (user.getIdGoogle().equals(id)) {
                 return user;
             }
         }
@@ -181,6 +143,93 @@ public class Chat {
         }
         return null;
     }
+
+    private void addMessageFromDB(MessageData messageData) {
+        Message message;
+        // get  a Message clone
+        if (isMyMessage(messageData.userId)) {
+            message = MessagePrototypeFactory.getPrototype("myMessage");
+        } else {
+            message = MessagePrototypeFactory.getPrototype("otherMessage");
+            User user = findParticipantByIdGoogle(messageData.userId);
+            message.setUser(user);
+
+        }
+        message.setCreateAt(new Date(messageData.createAtLong));
+        message.setText(messageData.text);
+        Chat.this.addMessage(message);
+    }
+
+    ChildEventListener onNewMessageListener = new ChildEventListener() {
+        @Override
+        public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+            MessageData messageData = dataSnapshot.getValue(MessageData.class);
+            addMessageFromDB(messageData);
+        }
+
+        @Override
+        public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+
+        }
+
+        @Override
+        public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
+
+        }
+
+        @Override
+        public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+
+        }
+
+        @Override
+        public void onCancelled(@NonNull DatabaseError databaseError) {
+
+        }
+    };
+
+    ///////////////////////////////////////////////////////
+    /////////////// Get messages from DB
+    /////////////////////////////////////////////
+    private ValueEventListener myMessagesSaved = new ValueEventListener() {
+        @Override
+        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+
+            for (DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
+                MessageData messageData = postSnapshot.getValue(MessageData.class);
+                addMessageFromDB(messageData);
+
+            }
+        }
+
+        @Override
+        public void onCancelled(@NonNull DatabaseError databaseError) {
+
+        }
+    };
+
+    private boolean isMyMessage(String userId) {
+        return userId.equals(User.getCurrentUser().getIdGoogle());
+    }
+    ///////////////////////////////////////////////////////
+    /////////////// Get participants from DB
+    /////////////////////////////////////////////
+    ValueEventListener getParticipantsFromDB = new ValueEventListener() {
+        @Override
+        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+
+            for (DataSnapshot p : dataSnapshot.getChildren()) {
+                UserData userData =p.getValue(UserData.class);
+                User user=userData.toUser();
+                Chat.this.addParticipants(user);
+            }
+        }
+
+        @Override
+        public void onCancelled(@NonNull DatabaseError databaseError) {
+
+        }
+    };
 
 
     ///////////////////////////////////////////////////////
@@ -215,6 +264,14 @@ public class Chat {
         this.numOfParticipants = numOfParticipants;
     }
 
+    public Double getNumOfMessage() {
+        return numOfMessage;
+    }
+
+    public void setNumOfMessage(Double numOfMessage) {
+        this.numOfMessage = numOfMessage;
+    }
+
     public void setKey(String key) {
         this.key = key;
     }
@@ -226,6 +283,7 @@ public class Chat {
     public void setCreatedAt(Date createdAt) {
         this.createdAt = createdAt;
     }
+
     public List<Message> getMessages() {
         return messages;
     }
@@ -243,7 +301,7 @@ public class Chat {
         imageView.setImageResource(resource);
     }
 
-//    public static void main(String args[]){
+    //    public static void main(String args[]){
 //
 //        Chat chat1 = new Chat();
 //        User a = new User("Michael");
@@ -256,14 +314,14 @@ public class Chat {
 //        chat1.addMessage(new Message("eeeeeeeeeeee",a,Message.YOUR_MESSAGE));
 //
 //    }
-    public interface IChatListener{
-    /**
-     * new message x in chat chat
-     * @param chat  chat
-     * @param x message
-     */
-    void onNewMessage(Chat chat,Message x);
-
+    public interface IChatListener {
+        /**
+         * new message x in chat chat
+         *
+         * @param chat chat
+         * @param x    message
+         */
+        void onNewMessage(Chat chat, Message x);
 
 
     }

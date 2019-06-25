@@ -3,8 +3,10 @@ package com.example.mrrobot.concurrent;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.support.annotation.NonNull;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -27,14 +29,13 @@ import com.mapbox.mapboxsdk.maps.MapView;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity
-        implements PermissionsListener ,
+        implements PermissionsListener,
         ViewPager.OnPageChangeListener,
-        DestinationFragment.DestinationListener {
+        DestinationFragment.DestinationListener, View.OnClickListener {
 
 
-
-    final String apiKey ="AIzaSyCE6yWse7ECNMN5q7XRxuQ8ihyU8QuqrdY";
-    final String apiKeyMapBox="pk.eyJ1IjoibXJtaWNoYWVsYm90IiwiYSI6ImNqZHpiamNnNzBwMXYycXA5cXh2M2xnZjcifQ.iqfPeoVbpWQcLG8bvf9qzw";
+    final String apiKey = "AIzaSyCE6yWse7ECNMN5q7XRxuQ8ihyU8QuqrdY";
+    final String apiKeyMapBox = "pk.eyJ1IjoibXJtaWNoYWVsYm90IiwiYSI6ImNqZHpiamNnNzBwMXYycXA5cXh2M2xnZjcifQ.iqfPeoVbpWQcLG8bvf9qzw";
 
     LocationViewModel locationViewModel;
 
@@ -44,8 +45,8 @@ public class MainActivity extends AppCompatActivity
     MyPagerAdapter adapterViewPager;
     Toolbar toolbar;
 
-    DestinationFragment destinationFragment=DestinationFragment.newInstance();
-    HomeFragment homeFragment=HomeFragment.newInstance();
+    DestinationFragment destinationFragment = DestinationFragment.newInstance();
+    HomeFragment homeFragment = HomeFragment.newInstance();
 
     //////////////////////////////////////////////
     //////////////////////////// METHODS
@@ -59,14 +60,14 @@ public class MainActivity extends AppCompatActivity
         // set content
         setContentView(R.layout.activity_main);
         // request GPS
-        LocationViewModel.requestLocationPermissions(getApplicationContext(),this,this);
+        LocationViewModel.requestLocationPermissions(getApplicationContext(), this, this);
         // associate the activity with a ViewModel
-        this.locationViewModel= ViewModelProviders.of(this).get(LocationViewModel.class);
+        this.locationViewModel = ViewModelProviders.of(this).get(LocationViewModel.class);
         //
 
         // MAP VIEW
         MapView mapView = findViewById(R.id.mapView);
-        this.locationViewModel.setMapView(mapView ,savedInstanceState);
+        this.locationViewModel.setMapView(mapView, savedInstanceState);
 
         // Initialize Places.
         Places.initialize(getApplicationContext(), apiKey);
@@ -76,24 +77,20 @@ public class MainActivity extends AppCompatActivity
         initUI();
     }
 
-    private void initUI(){
+    private void initUI() {
 
         findViewById(R.id.optionsTop).bringToFront();
         findViewById(R.id.optionsBot).bringToFront();
-        this.textView= findViewById(R.id.outputOfPlace);
+        this.textView = findViewById(R.id.outputOfPlace);
 
         this.destinationFragment.setDestinationListener(this);
 
-        findViewById(R.id.btnChats).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                getApplicationContext().startActivity(new Intent(getApplicationContext(), DialogsActivity.class));
-            }
-        });
+        findViewById(R.id.btnChats).setOnClickListener(this);
+        findViewById(R.id.btnFormLocation).setOnClickListener(this);
 
     }
 
-    private void initViewPage(){
+    private void initViewPage() {
         // view Pager
         //this.viewPager = (ViewPager) findViewById(R.id.viewPager);
         this.adapterViewPager = new MyPagerAdapter(getSupportFragmentManager());
@@ -102,6 +99,7 @@ public class MainActivity extends AppCompatActivity
         this.viewPager.setCurrentItem(1);
 
     }
+
     private void initToolbar() {
         //this.toolbar = findViewById(R.id.toolbar);
 
@@ -121,6 +119,30 @@ public class MainActivity extends AppCompatActivity
 
     }
 
+    @Override
+    public void onClick(View view) {
+        int id = view.getId();
+        switch (id) {
+            case R.id.btnChats:
+                getApplicationContext().startActivity(new Intent(getApplicationContext(), DialogsActivity.class));
+                break;
+            case R.id.btnFormLocation:
+                showDialogTheme();
+                break;
+        }
+    }
+    public void showDialogTheme(){
+        /*DialogFragment themeDialogFragment = new DestinationFragment();
+        themeDialogFragment.show(getFragmentManager(), "DialogFragmentFragment");*/
+
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        Fragment prev = getSupportFragmentManager().findFragmentByTag("QWEQW");
+        if (prev != null) {
+            ft.remove(prev);
+        }
+        ft.addToBackStack(null);
+        this.destinationFragment.show(ft,"QWEQW");
+    }
     ////////////////////////
     // GPS Permission Listener
 
@@ -139,9 +161,11 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onPlaceSelected(Place place) {
-        String str =place.getName()+" "+place.getLatLng();
+        String str = place.getName() + " " + place.getLatLng();
         this.textView.setText(str);
     }
+
+
     // VIEW PAGER LISTENERS
 
     // This method will be invoked when a new page becomes selected.
@@ -149,11 +173,12 @@ public class MainActivity extends AppCompatActivity
     public void onPageScrolled(int i, float v, int i1) {
 
     }
+
     // This method will be invoked when the current page is scrolled
     @Override
     public void onPageSelected(int i) {
 
-        CharSequence title= this.adapterViewPager.getPageTitle(i);
+        CharSequence title = this.adapterViewPager.getPageTitle(i);
         this.toolbar.setTitle(title);
         /*if(i==0 ){
             this.destinationFragment=(DestinationFragment) this.adapterViewPager.getItem(0);
@@ -161,6 +186,7 @@ public class MainActivity extends AppCompatActivity
         }*/
 
     }
+
     // Called when the scroll state changes:
     // SCROLL_STATE_IDLE, SCROLL_STATE_DRAGGING, SCROLL_STATE_SETTLING
     @Override
@@ -212,7 +238,7 @@ public class MainActivity extends AppCompatActivity
     ///////////////////////////////////////////////////
 
     public class MyPagerAdapter extends SmartFragmentStatePagerAdapter {
-        private  int NUM_ITEMS = 2;
+        private int NUM_ITEMS = 2;
 
         public MyPagerAdapter(FragmentManager fragmentManager) {
             super(fragmentManager);
@@ -233,7 +259,7 @@ public class MainActivity extends AppCompatActivity
                     return destinationFragment;
                 case 1: // Fragment # 0 - This will show FirstFragment different title
                     return homeFragment;
-                    //return HomeFragment.newInstance();
+                //return HomeFragment.newInstance();
                 default:
                     return null;
             }
