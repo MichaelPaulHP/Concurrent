@@ -9,12 +9,12 @@
     <RelativeLayout
         android:id="@+id/optionsTop"
         android:layout_width="match_parent"
-        android:layout_height="60dp"
+        android:layout_height="90dp"
         android:layout_alignParentTop="true"
-        android:layout_marginStart="40dp"
+        android:layout_marginStart="30dp"
         android:layout_marginTop="30dp"
         android:background="?attr/color_secondary"
-        android:layout_marginEnd="40dp">
+        android:layout_marginEnd="30dp">
         <android.support.v7.widget.CardView
 
             android:layout_width="50dp"
@@ -59,21 +59,26 @@
             android:id="@+id/btnTestCreateChat"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="createChat"/>
+            android:text="createChat"
+            android:visibility="gone"
+            />
         <Button
             android:id="@+id/btnTestCreateUser"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:visibility="gone"
             android:text="createUser"/>
         <Button
             android:id="@+id/btnTestSendMessage"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:visibility="gone"
             android:text="sendMessUserTest"/>
+
     </LinearLayout>
 
     <com.stfalcon.chatkit.messages.MessagesList
-
+        android:layout_below="@id/optionsTop"
         android:id="@+id/messagesList"
         android:layout_width="match_parent"
         android:layout_height="300dp"

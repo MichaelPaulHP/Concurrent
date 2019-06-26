@@ -296,10 +296,10 @@ public class Chat {
     }
 
 
-    @BindingAdapter("android:src")
+    /*@BindingAdapter("android:src")
     public static void setImageResource(ImageView imageView, int resource) {
         imageView.setImageResource(resource);
-    }
+    }*/
 
     //    public static void main(String args[]){
 //
