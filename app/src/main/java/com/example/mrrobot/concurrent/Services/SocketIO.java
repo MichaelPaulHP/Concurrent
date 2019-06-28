@@ -64,8 +64,30 @@ public class SocketIO {
         } catch (JSONException e) {
             Log.d("JSONException", e.getMessage());
         }
+    }
+
+    public static void emitNewTempDestination(Destination destination){
+        Socket socket = getSocket();
+        JSONObject jsonObject = new JSONObject();
+        try {
+            // int numUsers;
+            // Localization localization;
+            // int color;
+            // String name;
+            Localization localization = destination.getLocalization();
+            jsonObject.put("numUsers", destination.getNumUsers()+"");
+            jsonObject.put("name", destination.getName());
+            jsonObject.put("color", destination.getColor()+"");
+            jsonObject.put("latitude", localization.getLatitude()+"");
+            jsonObject.put("longitude", localization.getLongitude()+"");
+            jsonObject.put("userID", User.getCurrentUser().getIdGoogle());
+            socket.emit("newTempDestination", jsonObject);
+        } catch (JSONException e) {
+            Log.d("JSONException", e.getMessage());
+        }
 
     }
+
     public static void emitNewDestination(Destination destination){
         Socket socket = getSocket();
         JSONObject jsonObject = new JSONObject();

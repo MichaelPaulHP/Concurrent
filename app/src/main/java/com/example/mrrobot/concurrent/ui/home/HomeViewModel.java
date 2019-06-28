@@ -33,6 +33,10 @@ public class HomeViewModel extends AndroidViewModel
     public DestinationAdapter destinationAdapter;
     List<Destination> destinations = new ArrayList<>();
     Socket socket;
+    private Destination destinationCurrent;
+
+    /////////////////// METHODS
+
     public HomeViewModel(Application application) {
         super(application);
 
@@ -49,6 +53,7 @@ public class HomeViewModel extends AndroidViewModel
     private void addDestination(Destination destination) {
         this.destinations.add(destination);
         this.destinationAdapter.notifyNewDestinationInserted();
+        this.destinationCurrent=destination; // DESTINATION CURRENT
         MapboxMap mapboxMap = LocationViewModel.getMapBox();
         Style style = mapboxMap.getStyle();
         if(style!=null){
@@ -69,10 +74,12 @@ public class HomeViewModel extends AndroidViewModel
                 }
                 String name = data.getString("name");
                 String id = data.getString("idDestination");
+                int color=Integer.parseInt(data.getString("color"));
                 int numUsers = Integer.parseInt(data.getString("numUsers"));
                 double latitude = Double.parseDouble( data.getString("latitude "));
                 double longitude =Double.parseDouble( data.getString("longitude "));
                 destination = new Destination();
+                destination.setColor(color);
                 destination.setName(name);
                 destination.setId(id);
                 destination.setNumUsers(numUsers);
@@ -95,14 +102,14 @@ public class HomeViewModel extends AndroidViewModel
 
     @Override
     public void onClick(Destination destination) {
-        // show Position of user
+        // show Position of users
+        destinationCurrent=destination;
     }
 
     @Override
     public void onDestinationSelected(Destination destination) {
         // add to list
-        //SocketIO.emitJoinToDestination(destination);
-        this.destinations.add(destination);
-        this.destinationAdapter.notifyNewDestinationInserted();
+        SocketIO.emitJoinToDestination(destination);
+
     }
 }

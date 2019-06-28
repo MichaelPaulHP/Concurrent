@@ -19,29 +19,32 @@ import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
 
 public class DestinationViewModel extends ViewModel
-    implements  Destination.IListenerDestination{
+        implements Destination.IListenerDestination {
 
 
     private Socket socket;
-    private List<Destination> resultsDestination=new ArrayList<>();
+    private List<Destination> resultsDestination = new ArrayList<>();
     public DestinationAdapter destinationAdapter;
 
     private Destination destinationSelected;
-    private boolean isNewDestination=true;
+    private boolean isNewDestination = true;
+
     public DestinationViewModel() {
         initDestinationAdapter();
-        this.socket= SocketIO.getSocket();
-        this.socket.on("destinationFound",onDestinationFound);
+        this.socket = SocketIO.getSocket();
+        this.socket.on("destinationsFound", onDestinationFound);
     }
 
-    public void onPlaceSelected(Place place){
+    public void onPlaceSelected(Place place) {
 
-        Localization localization = new Localization("",place.getLatLng().latitude,place.getLatLng().longitude);
-        //SocketIO.emitFindDestinations(localization);
-        this.destinationSelected=createDestination(place);
+        Localization localization = new Localization("", place.getLatLng().latitude, place.getLatLng().longitude);
+        SocketIO.emitFindDestinations(localization);// response SERVE onDestinationFount
+        Destination destination = createTempDestination(place);
+        SocketIO.emitNewTempDestination(destination);// response Serve eonDestinationFount this dest with id
 
     }
-    private Destination  createDestination(Place place){
+
+    private Destination createTempDestination(Place place) {
 
         String name = place.getName();
         Double longitude = place.getLatLng().longitude;
@@ -54,6 +57,8 @@ public class DestinationViewModel extends ViewModel
         destination.setListenerDestination(this);
         return destination;
     }
+
+
     private Emitter.Listener onDestinationFound = new Emitter.Listener() {
 
         @Override
@@ -62,19 +67,19 @@ public class DestinationViewModel extends ViewModel
             Destination destination;
             try {
                 JSONObject data = (JSONObject) args[0];
-                if(data==null) {
+                if (data == null) {
                     return;
                 }
                 String name = data.getString("name");
                 String id = data.getString("idDestination");
                 int numUsers = Integer.parseInt(data.getString("numUsers"));
-                double latitude = Double.parseDouble( data.getString("latitude "));
-                double longitude =Double.parseDouble( data.getString("longitude "));
+                double latitude = Double.parseDouble(data.getString("latitude "));
+                double longitude = Double.parseDouble(data.getString("longitude "));
                 destination = new Destination();
                 destination.setName(name);
                 destination.setId(id);
                 destination.setNumUsers(numUsers);
-                destination.setLocalization(new Localization("",latitude,longitude));
+                destination.setLocalization(new Localization("", latitude, longitude));
                 destination.setListenerDestination(DestinationViewModel.this);
                 addToListOfResults(destination);
 
@@ -86,15 +91,13 @@ public class DestinationViewModel extends ViewModel
     };
 
 
-
-
     private void initDestinationAdapter() {
         this.destinationAdapter = new DestinationAdapter();
         this.destinationAdapter.setDestinations(this.resultsDestination);
 
     }
 
-    private void addToListOfResults(Destination destination){
+    private void addToListOfResults(Destination destination) {
         this.resultsDestination.add(destination);
         this.destinationAdapter.notifyNewDestinationInserted();
     }
@@ -107,16 +110,18 @@ public class DestinationViewModel extends ViewModel
     @Override
     public void onClick(Destination destination) {
         // join and close.
-        this.destinationSelected=destination;
-        isNewDestination=false;
+        this.destinationSelected = destination;
+        isNewDestination = false;
     }
 
+    public void OnSubmit(){
+
+    }
     public Destination getDestinationSelected() {
-        if (isNewDestination){
+        if (isNewDestination) {
             //SocketIO.emitNewDestination(destinationSelected);
             // response with id of Destination.
-        }
-        else{
+        } else {
             //SocketIO.emitJoinToDestination(destinationSelected);
         }
         return destinationSelected;

@@ -3,6 +3,7 @@ package com.example.mrrobot.concurrent.ui.destination;
 import android.app.Dialog;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
+import android.databinding.DataBindingUtil;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -20,6 +21,8 @@ import android.view.ViewGroup;
 
 import com.example.mrrobot.concurrent.R;
 import com.example.mrrobot.concurrent.Services.SocketIO;
+import com.example.mrrobot.concurrent.databinding.DestinationBinding;
+import com.example.mrrobot.concurrent.databinding.DestinationFragmentBinding;
 import com.example.mrrobot.concurrent.models.Destination;
 import com.example.mrrobot.concurrent.ui.location.LocationViewModel;
 import com.google.android.gms.common.api.Status;
@@ -41,10 +44,12 @@ import static android.app.Activity.RESULT_OK;
 public class DestinationFragment extends DialogFragment implements View.OnClickListener {
     String TAG = "autocompleteDestination";
     int AUTOCOMPLETE_REQUEST_CODE = 66;
+
     private DestinationViewModel destinationViewModel;
     DestinationListener destinationListener;
     RecyclerView recyclerViewDestinationsFound;
-    AutocompleteSupportFragment autocompleteFragment;
+
+    private DestinationFragmentBinding binding;
 
     public DestinationFragment() {
         // Required empty public constructor
@@ -57,12 +62,12 @@ public class DestinationFragment extends DialogFragment implements View.OnClickL
     @Override
     public void onStart() {
         super.onStart();
-        Dialog dialog = getDialog();
+        /*Dialog dialog = getDialog();
         if (dialog != null) {
             int width = ViewGroup.LayoutParams.MATCH_PARENT;
             int height = ViewGroup.LayoutParams.MATCH_PARENT;
             dialog.getWindow().setLayout(width, height);
-        }
+        }*/
         Log.i(TAG, "onStart");
     }
 
@@ -76,14 +81,20 @@ public class DestinationFragment extends DialogFragment implements View.OnClickL
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
+        // DATA BINDING
+        binding =
+                DataBindingUtil.inflate(inflater,R.layout.destination_fragment, container, false);
 
-        View view = inflater.inflate(R.layout.destination_fragment, container, false);
+        // TO VIEW MODEL
+        destinationViewModel = ViewModelProviders.of(this).get(DestinationViewModel.class);
 
-        view.findViewById(R.id.btnSearchPlace).setOnClickListener(this);
-        view.findViewById(R.id.btnSubmitDestination).setOnClickListener(this);
-        this.recyclerViewDestinationsFound = view.findViewById(R.id.recyclerViewDestinationsFound);
+        binding.setDestinationVM(destinationViewModel);
+        binding.btnSearchPlace.setOnClickListener(this);
+        binding.btnSubmitDestination.setOnClickListener(this);
+        this.recyclerViewDestinationsFound = binding.recyclerViewDestinationsFound;
 
-        return view;
+
+        return binding.getRoot();
     }
 
     @NonNull
@@ -102,7 +113,7 @@ public class DestinationFragment extends DialogFragment implements View.OnClickL
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         // view models
-        destinationViewModel = ViewModelProviders.of(this).get(DestinationViewModel.class);
+        //destinationViewModel = ViewModelProviders.of(this).get(DestinationViewModel.class);
 
         initRecyclerViewOfDestinations();
     }

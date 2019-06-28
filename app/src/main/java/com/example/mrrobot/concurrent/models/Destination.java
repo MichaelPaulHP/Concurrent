@@ -58,6 +58,10 @@ public class Destination {
         return color;
     }
 
+    public void setColor(int color) {
+        this.color = color;
+    }
+
     public String getName() {
         return name;
     }

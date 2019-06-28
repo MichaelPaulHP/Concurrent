@@ -13,7 +13,7 @@
         android:onClick="@{()->destination.listenerDestination.onClick(destination)}"
         >
         <ImageView
-            android:layout_width="18dp"
+            android:layout_width="wrap_content"
             android:layout_height="18dp"
             android:layout_alignParentTop="true"
             android:layout_alignParentEnd="true"
