@@ -16,6 +16,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.TextView;
 
+import com.example.mrrobot.concurrent.Firebase.Auth;
 import com.example.mrrobot.concurrent.Services.SocketIO;
 import com.example.mrrobot.concurrent.lib.SmartFragmentStatePagerAdapter;
 import com.example.mrrobot.concurrent.models.Destination;
@@ -45,7 +46,7 @@ public class MainActivity extends AppCompatActivity
     HomeViewModel homeViewModel;
 
 
-    TextView textView;
+
 
     DestinationFragment destinationFragment = DestinationFragment.newInstance();
 
@@ -87,11 +88,12 @@ public class MainActivity extends AppCompatActivity
 
         findViewById(R.id.optionsTop).bringToFront();
         findViewById(R.id.optionsBot).bringToFront();
-        this.textView = findViewById(R.id.outputOfPlace);
+
         // this is important
         this.destinationFragment.setDestinationListener(this.homeViewModel);
 
         findViewById(R.id.btnChats).setOnClickListener(this);
+        findViewById(R.id.btnLogOut).setOnClickListener(this);
         findViewById(R.id.btnFormLocation).setOnClickListener(this);
         initRecyclerViewOfDestinations();
     }
@@ -114,6 +116,8 @@ public class MainActivity extends AppCompatActivity
             case R.id.btnFormLocation:
                 showDialogTheme();
                 break;
+            case R.id.btnLogOut:
+                Auth.getInstance().signOut();
         }
     }
 

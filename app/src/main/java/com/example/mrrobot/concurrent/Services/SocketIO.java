@@ -126,4 +126,20 @@ public class SocketIO {
         }
 
     }
+    public static void saveThisUser(String userID){
+        //socket.emit("testSaveUser",{userID:userID});
+        Socket socket = getSocket();
+        JSONObject jsonObject = new JSONObject();
+        try {
+            // int numUsers;
+            // Localization localization;
+            // int color;
+            // String name;
+
+            jsonObject.put("userID", userID);
+            socket.emit("testSaveUser", jsonObject);
+        } catch (JSONException e) {
+            Log.d("JSONException", e.getMessage());
+        }
+    }
 }

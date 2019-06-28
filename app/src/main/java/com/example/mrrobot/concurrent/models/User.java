@@ -3,6 +3,7 @@ package com.example.mrrobot.concurrent.models;
 import android.support.annotation.NonNull;
 
 
+import com.example.mrrobot.concurrent.Firebase.Auth;
 import com.example.mrrobot.concurrent.Firebase.DB.ChatData;
 import com.example.mrrobot.concurrent.Firebase.DB.UserData;
 
@@ -42,7 +43,8 @@ public class User implements IUser {
 
     public static User getCurrentUser() {
         if (USER_CURRENT == null) {
-            USER_CURRENT = new User("0", "IgGoogle220619", "UserName Current", "http://i.imgur.com/pv1tBmT.png");
+            Auth auth = Auth.getInstance();
+            USER_CURRENT = new User("0", auth.getId(), auth.getUserName(), "http://i.imgur.com/pv1tBmT.png");
         }
         return USER_CURRENT;
     }

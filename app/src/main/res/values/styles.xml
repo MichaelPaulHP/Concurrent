@@ -9,7 +9,7 @@
 
         <item name="color_primary" >#FFF</item>
         <item name="color_secondary" >#000</item>
-        <item name="color_accent">#C08118</item>
+        <item name="color_accent">#ef3a4f</item>
         <item name="color_disable">#DDD</item> <!-- color mas transparent at color primary -->
 
     </style>

@@ -73,8 +73,10 @@ public class DestinationViewModel extends ViewModel
                 String name = data.getString("name");
                 String id = data.getString("idDestination");
                 int numUsers = Integer.parseInt(data.getString("numUsers"));
-                double latitude = Double.parseDouble(data.getString("latitude "));
-                double longitude = Double.parseDouble(data.getString("longitude "));
+                String latitudeStr=data.getString("latitude");
+
+                double latitude = Double.parseDouble(latitudeStr);
+                double longitude = Double.parseDouble(data.getString("longitude"));
                 destination = new Destination();
                 destination.setName(name);
                 destination.setId(id);
@@ -84,6 +86,7 @@ public class DestinationViewModel extends ViewModel
                 addToListOfResults(destination);
 
             } catch (JSONException e) {
+
                 return;
             }
             // show in list

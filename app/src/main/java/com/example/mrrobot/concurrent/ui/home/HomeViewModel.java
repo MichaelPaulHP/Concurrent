@@ -76,8 +76,8 @@ public class HomeViewModel extends AndroidViewModel
                 String id = data.getString("idDestination");
                 int color=Integer.parseInt(data.getString("color"));
                 int numUsers = Integer.parseInt(data.getString("numUsers"));
-                double latitude = Double.parseDouble( data.getString("latitude "));
-                double longitude =Double.parseDouble( data.getString("longitude "));
+                double latitude = Double.parseDouble( data.getString("latitude"));
+                double longitude =Double.parseDouble( data.getString("longitude"));
                 destination = new Destination();
                 destination.setColor(color);
                 destination.setName(name);

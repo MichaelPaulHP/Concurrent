@@ -102,12 +102,13 @@
 
         </android.support.v7.widget.RecyclerView>
 
-        <TextView
-            android:id="@+id/outputOfPlace"
-            android:layout_width="match_parent"
+        <Button
+            android:id="@+id/btnLogOut"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:gravity="center"
-            android:text="SALIDA"
+            android:layout_gravity="right"
+            android:gravity="right"
+            android:text="signOut"
             android:textColor="#222" />
     </LinearLayout>
 
