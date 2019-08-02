@@ -14,6 +14,7 @@ public class Auth {
         mAuth = FirebaseAuth.getInstance();
 
         this.currentUser = mAuth.getCurrentUser();
+
     }
 
     public static Auth getInstance() {
@@ -28,6 +29,10 @@ public class Auth {
     }
 
     public String getUserName(){
+
+        if(  currentUser.getDisplayName()==null || currentUser.getDisplayName().isEmpty()){
+            return currentUser.getEmail();
+        }
         return currentUser.getDisplayName();
     }
     public Uri getPhotoUrl(){

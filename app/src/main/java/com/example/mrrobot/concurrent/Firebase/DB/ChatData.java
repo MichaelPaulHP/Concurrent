@@ -52,13 +52,21 @@ public class ChatData {
         dbReferenceChats.addListenerForSingleValueEvent(valueEventListener);
     }
 
+    public static  String getAnId(){
+
+        final FirebaseDatabase database = FirebaseDatabase.getInstance();
+        final DatabaseReference dbReferenceChats = database.getReference("/RoomsChat/Chats");
+        final String idChat = dbReferenceChats.push().getKey();
+        return idChat;
+    }
+
     public static Task<Void> saveChat(final Chat chatSaved){
         final FirebaseDatabase database = FirebaseDatabase.getInstance();
 
         // REFERENCES
         //  CHAT
         final DatabaseReference dbReferenceChats = database.getReference("/RoomsChat/Chats");
-        final String idChat = dbReferenceChats.push().getKey();
+        final String idChat = chatSaved.getKey();
 
 
         chatSaved.setKey(idChat);

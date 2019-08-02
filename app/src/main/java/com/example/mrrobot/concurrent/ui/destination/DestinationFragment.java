@@ -22,7 +22,7 @@ import android.view.ViewGroup;
 import com.example.mrrobot.concurrent.R;
 import com.example.mrrobot.concurrent.Services.SocketIO;
 import com.example.mrrobot.concurrent.databinding.DestinationBinding;
-import com.example.mrrobot.concurrent.databinding.DestinationFragmentBinding;
+
 import com.example.mrrobot.concurrent.models.Destination;
 import com.example.mrrobot.concurrent.ui.location.LocationViewModel;
 import com.google.android.gms.common.api.Status;
@@ -46,10 +46,10 @@ public class DestinationFragment extends DialogFragment implements View.OnClickL
     int AUTOCOMPLETE_REQUEST_CODE = 66;
 
     private DestinationViewModel destinationViewModel;
-    DestinationListener destinationListener;
+
     RecyclerView recyclerViewDestinationsFound;
 
-    private DestinationFragmentBinding binding;
+
 
     public DestinationFragment() {
         // Required empty public constructor
@@ -82,7 +82,7 @@ public class DestinationFragment extends DialogFragment implements View.OnClickL
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         // DATA BINDING
-        binding =
+        /*binding =
                 DataBindingUtil.inflate(inflater,R.layout.destination_fragment, container, false);
 
         // TO VIEW MODEL
@@ -91,11 +91,13 @@ public class DestinationFragment extends DialogFragment implements View.OnClickL
         binding.setDestinationVM(destinationViewModel);
         binding.btnSearchPlace.setOnClickListener(this);
         binding.btnSubmitDestination.setOnClickListener(this);
-        this.recyclerViewDestinationsFound = binding.recyclerViewDestinationsFound;
+        this.recyclerViewDestinationsFound = binding.recyclerViewDestinationsFound;*/
 
 
-        return binding.getRoot();
+        return null;
     }
+
+
 
     @NonNull
     @Override
@@ -121,8 +123,8 @@ public class DestinationFragment extends DialogFragment implements View.OnClickL
     private void initRecyclerViewOfDestinations() {
 
         //this.recyclerViewDestinationsFound = findViewById(R.id.recyclerViewListDestinations);
-        this.recyclerViewDestinationsFound.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
-        this.recyclerViewDestinationsFound.setAdapter(this.destinationViewModel.destinationAdapter);
+        //this.recyclerViewDestinationsFound.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
+        //this.recyclerViewDestinationsFound.setAdapter(this.destinationViewModel.destinationAdapter);
 
     }
 
@@ -134,7 +136,10 @@ public class DestinationFragment extends DialogFragment implements View.OnClickL
 
                 Place place = Autocomplete.getPlaceFromIntent(data);
                 Log.i(TAG, "Place: " + place.getName() + ", " + place.getId());
+
+
                 this.destinationViewModel.onPlaceSelected(place);
+
                 //DestinationFragment.this.destinationListener.onPlaceSelected(place);
 
 
@@ -192,15 +197,10 @@ public class DestinationFragment extends DialogFragment implements View.OnClickL
 
     }*/
     private void onSubmit() {
-        Destination destination= destinationViewModel.getDestinationSelected();
+        Destination destination= null;
         if( destination!=null) {
-            this.destinationListener.onDestinationSelected(destination);
             dismiss();
         }
-    }
-
-    public void setDestinationListener(DestinationListener iDestinationFragment) {
-        this.destinationListener = iDestinationFragment;
     }
 
     @Override
@@ -242,10 +242,6 @@ public class DestinationFragment extends DialogFragment implements View.OnClickL
         Log.i(TAG, "onDestroy");
     }
 
-    // INTERFACE
-    public interface DestinationListener {
 
-        void onDestinationSelected(Destination destination);
-    }
 
 }

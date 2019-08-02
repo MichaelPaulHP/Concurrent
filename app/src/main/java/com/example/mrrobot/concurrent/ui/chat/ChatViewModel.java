@@ -1,5 +1,7 @@
 package com.example.mrrobot.concurrent.ui.chat;
 
+import android.app.Application;
+import android.arch.lifecycle.AndroidViewModel;
 import android.arch.lifecycle.ViewModel;
 import android.databinding.ObservableField;
 import android.support.annotation.NonNull;
@@ -7,12 +9,14 @@ import android.support.annotation.Nullable;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.example.mrrobot.concurrent.Firebase.DB.ChatData;
 import com.example.mrrobot.concurrent.models.Chat;
 import com.example.mrrobot.concurrent.models.Message;
 import com.example.mrrobot.concurrent.models.MessagePrototypeFactory;
 import com.example.mrrobot.concurrent.models.User;
+import com.example.mrrobot.concurrent.ui.home.DestinationAdapter;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
@@ -28,7 +32,7 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Random;
 
-public class ChatViewModel extends ViewModel implements
+public class ChatViewModel extends AndroidViewModel implements
         MessageInput.InputListener,
         MessageInput.AttachmentsListener,
         MessageInput.TypingListener,
@@ -45,10 +49,11 @@ public class ChatViewModel extends ViewModel implements
     ObservableField<Integer> count = new ObservableField<>(0);
     private MessagesListAdapter<Message> messagesAdapter;
     private ChatsAdapter chatsAdapter;
+    private DestinationAdapter destinationAdapter;
     private ImageLoader imageLoader;
     private int indexChat=0;
-    public ChatViewModel() {
-
+    public ChatViewModel(Application application) {
+        super(application);
         this.user=User.getCurrentUser();
         // listener user
         user.userListeners=this;
@@ -62,7 +67,8 @@ public class ChatViewModel extends ViewModel implements
     private void initChatsAdapter() {
         this.chatsAdapter = new ChatsAdapter(this.user.getMyChats());
         this.chatsAdapter.setOnItemClickListener(this);
-
+        /*this.destinationAdapter = new DestinationAdapter();
+        this.destinationAdapter.setDestinations(this.user.getMyDestinations());*/
     }
 
     private void initMessagesAdapter() {
@@ -194,11 +200,13 @@ public class ChatViewModel extends ViewModel implements
      */
     @Override
     public void onItemClick(int position, View v) {
-        if(this.indexChat!=position){
+        Toast.makeText(this.getApplication().getApplicationContext(),position+"",Toast.LENGTH_LONG).show();
+        /*if(this.indexChat!=position){
             Chat chat = this.user.getMyChats().get(position);
             this.messagesAdapter.clear();
             this.messagesAdapter.addToEnd(chat.getMessages(),true);
         }
+        */
 
         // show messages if
         //showMessages(this.user.myChats.get(position));
@@ -240,7 +248,8 @@ public class ChatViewModel extends ViewModel implements
      */
     @Override
     public void onJoinToChat() {
-        this.chatsAdapter.notifyNewChatInserted();
+        //this.chatsAdapter.notifyNewChatInserted();
+        this.destinationAdapter.notifyNewDestinationInserted();
     }
 
 
@@ -257,8 +266,9 @@ public class ChatViewModel extends ViewModel implements
         return chatsAdapter;
     }
 
-
-
+    public DestinationAdapter getDestinationAdapter() {
+        return destinationAdapter;
+    }
 
     private void initImageLoader() {
         this.imageLoader = new ImageLoader() {

@@ -1,8 +1,10 @@
 package com.example.mrrobot.concurrent;
 
+import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -14,6 +16,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.example.mrrobot.concurrent.Firebase.Auth;
@@ -21,8 +24,12 @@ import com.example.mrrobot.concurrent.Services.SocketIO;
 import com.example.mrrobot.concurrent.lib.SmartFragmentStatePagerAdapter;
 import com.example.mrrobot.concurrent.models.Destination;
 import com.example.mrrobot.concurrent.models.Localization;
+import com.example.mrrobot.concurrent.models.User;
 import com.example.mrrobot.concurrent.ui.chat.DialogsActivity;
+import com.example.mrrobot.concurrent.ui.destination.DestinationActivity;
 import com.example.mrrobot.concurrent.ui.destination.DestinationFragment;
+import com.example.mrrobot.concurrent.ui.destination.DestinationViewModel;
+import com.example.mrrobot.concurrent.ui.home.DestinationAdapter;
 import com.example.mrrobot.concurrent.ui.home.HomeViewModel;
 import com.example.mrrobot.concurrent.ui.location.LocationViewModel;
 import com.google.android.libraries.places.api.Places;
@@ -48,11 +55,11 @@ public class MainActivity extends AppCompatActivity
 
 
 
-    DestinationFragment destinationFragment = DestinationFragment.newInstance();
-
 
     private RecyclerView recyclerViewListDestinations;
+    DestinationAdapter destinationAdapter;
 
+    private ProgressBar progressBar;
 
     //////////////////////////////////////////////
     //////////////////////////// METHODS
@@ -70,6 +77,7 @@ public class MainActivity extends AppCompatActivity
         // associate the activity with a ViewModel
         this.locationViewModel = ViewModelProviders.of(this).get(LocationViewModel.class);
         this.homeViewModel = ViewModelProviders.of(this).get(HomeViewModel.class);
+
         //
 
         // MAP VIEW
@@ -88,23 +96,92 @@ public class MainActivity extends AppCompatActivity
 
         findViewById(R.id.optionsTop).bringToFront();
         findViewById(R.id.optionsBot).bringToFront();
+        this.progressBar=(ProgressBar) findViewById(R.id.mainProgressBar);
 
-        // this is important
-        this.destinationFragment.setDestinationListener(this.homeViewModel);
+        findViewById(R.id.btnTest).setOnClickListener(this);
 
         findViewById(R.id.btnChats).setOnClickListener(this);
         findViewById(R.id.btnLogOut).setOnClickListener(this);
         findViewById(R.id.btnFormLocation).setOnClickListener(this);
         initRecyclerViewOfDestinations();
+
+        subscribeDestinationSelected();
+        subscribeToHasNewDestination();
+        subscribeConnectTask();
     }
 
+    private void subscribeDestinationSelected() {
+        final Observer<Destination> booleanObserver = new Observer<Destination>() {
+            @Override
+            public void onChanged(@Nullable final Destination destination) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+
+                        MainActivity.this.locationViewModel.goToDestination(destination);
+
+                    }
+                });
+
+            }
+        };
+
+        Destination.destinationSelected.observe(this, booleanObserver);
+    }
+
+    private void subscribeToHasNewDestination() {
+
+        final Observer<Destination> newDestinationObserver = new Observer<Destination>() {
+            @Override
+            public void onChanged(@Nullable final Destination destination) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        MainActivity.this.destinationAdapter.notifyNewDestinationInserted();
+                        destination.setDestinationListener(locationViewModel);
+                    }
+                });
+
+            }
+        };
+        User.getCurrentUser().hasNewDestination.observe(this,newDestinationObserver);
+
+    }
+    private void subscribeConnectTask() {
+
+        final Observer<Boolean> observer = new Observer<Boolean>() {
+            @Override
+            public void onChanged(@Nullable final Boolean isConnected) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        showProgressBar(!isConnected);
+
+
+
+                    }
+                });
+
+            }
+        };
+
+        SocketIO.isConnected.observe(this,observer);
+
+    }
     private void initRecyclerViewOfDestinations() {
         this.recyclerViewListDestinations = findViewById(R.id.recyclerViewListDestinations);
         this.recyclerViewListDestinations.setLayoutManager(new LinearLayoutManager(getApplicationContext(), LinearLayoutManager.HORIZONTAL, false));
-        this.recyclerViewListDestinations.setAdapter(this.homeViewModel.destinationAdapter);
+        destinationAdapter = new DestinationAdapter();
+        this.recyclerViewListDestinations.setAdapter(destinationAdapter);
 
+        destinationAdapter.setDestinations(User.getCurrentUser().getMyDestinations());
     }
 
+    private void showProgressBar(Boolean show){
+
+            this.progressBar.setVisibility(show? View.VISIBLE:View.GONE);
+
+    }
 
     @Override
     public void onClick(View view) {
@@ -114,13 +191,21 @@ public class MainActivity extends AppCompatActivity
                 getApplicationContext().startActivity(new Intent(getApplicationContext(), DialogsActivity.class));
                 break;
             case R.id.btnFormLocation:
-                showDialogTheme();
+
+                getApplicationContext().startActivity(new Intent(getApplicationContext(), DestinationActivity.class));
+                //showDialogTheme();
                 break;
             case R.id.btnLogOut:
                 Auth.getInstance().signOut();
+                break;
+            case R.id.btnTest:
+                test();
+                break;
         }
     }
-
+    private void test(){
+        //User.getCurrentUser().requestMyDestinations();
+    }
     public void showDialogTheme(){
         /*DialogFragment themeDialogFragment = new DestinationFragment();
         themeDialogFragment.show(getFragmentManager(), "DialogFragmentFragment");*/
@@ -131,7 +216,7 @@ public class MainActivity extends AppCompatActivity
             ft.remove(prev);
         }
         ft.addToBackStack(null);
-        this.destinationFragment.show(ft,"QWEQW");
+        //this.destinationFragment.show(ft,"QWEQW");
     }
 
     ////////////////////////

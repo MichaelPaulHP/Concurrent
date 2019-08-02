@@ -1,6 +1,27 @@
 <resources>
 
     <!-- Base application theme. BLACK and WHITE -->
+    <style name="translucent" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowIsTranslucent">true</item>
+        <!-- Customize your theme here. -->
+         <!-- color mas transparent at color primary -->
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowIsFloating">false</item>
+        <item name="android:backgroundDimEnabled">false</item>
+        <item name="android:colorBackgroundCacheHint">@null</item>
+
+
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+
+        <item name="color_primary" >#FFF</item>
+        <item name="color_secondary" >#000</item>
+        <item name="color_accent">#ef3a4f</item>
+        <item name="color_disable">#DDD</item>
+    </style>
+    <!-- Base application theme. BLACK and WHITE -->
     <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>

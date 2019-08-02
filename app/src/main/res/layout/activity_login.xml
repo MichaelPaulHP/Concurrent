@@ -18,7 +18,12 @@
             android:src="@drawable/ic_location_on_black_24dp"
             android:tint="#ef3a4f"
             />
-
+        <ProgressBar
+            android:id="@+id/progressBarLogin"
+            android:layout_alignParentBottom="true"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"/>
     </RelativeLayout>
 
     <!--Mid-->
@@ -72,8 +77,8 @@
             </android.support.design.widget.TextInputLayout>
         </LinearLayout>
 
-        <android.support.v7.widget.AppCompatRadioButton
-            android:id="@+id/radioIslogIn"
+        <Switch
+            android:id="@+id/swIslogIn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:checked="false"

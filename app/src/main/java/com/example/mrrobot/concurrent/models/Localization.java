@@ -1,5 +1,7 @@
 package com.example.mrrobot.concurrent.models;
 
+import com.mapbox.mapboxsdk.geometry.LatLng;
+
 public class Localization {
     private String name;
     private double latitude;
@@ -14,7 +16,9 @@ public class Localization {
     public Localization() {
 
     }
-
+    public LatLng toLatLng(){
+        return new LatLng(this.latitude,longitude);
+    }
     public String getName() {
         return name;
     }

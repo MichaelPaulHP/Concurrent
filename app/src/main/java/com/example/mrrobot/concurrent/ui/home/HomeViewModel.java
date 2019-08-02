@@ -7,8 +7,10 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.example.mrrobot.concurrent.Services.SocketIO;
+import com.example.mrrobot.concurrent.Utils.Utils;
 import com.example.mrrobot.concurrent.models.Destination;
 import com.example.mrrobot.concurrent.models.Localization;
+import com.example.mrrobot.concurrent.models.User;
 import com.example.mrrobot.concurrent.ui.destination.DestinationFragment;
 import com.example.mrrobot.concurrent.ui.location.LocationViewModel;
 import com.google.android.libraries.places.api.model.Place;
@@ -27,71 +29,58 @@ import io.socket.emitter.Emitter;
 
 public class HomeViewModel extends AndroidViewModel
         implements
-        DestinationFragment.DestinationListener,
-        Destination.IListenerDestination {
+        Destination.IDestinationListener {
 
-    public DestinationAdapter destinationAdapter;
-    List<Destination> destinations = new ArrayList<>();
-    Socket socket;
-    private Destination destinationCurrent;
+
+
+    private User user;
+
 
     /////////////////// METHODS
-
     public HomeViewModel(Application application) {
         super(application);
 
-        initDestinationAdapter();
-        this.socket=SocketIO.getSocket();
-        this.socket.on("joinToDestination",onJoinToDestination);
+        user=User.getCurrentUser();
+        user.requestMyDestinations();
+        //requestMyDestinations();
+        user.startOnJoinToDestination();
+
+    }
+    /*public void requestMyDestinations() {
+        Socket socket = SocketIO.getSocket();
+
+        socket.emit("getMyDestinations", Utils.toJsonObject("userID",getIdGoogle()));
+
+        socket.on("getMyDestinations", onGetMyDestinations);//getMyDestinations
+        boolean c=socket.connected();
+        boolean lister= socket.hasListeners("getMyDestinations");
     }
 
-    private void initDestinationAdapter() {
-        this.destinationAdapter = new DestinationAdapter();
-        this.destinationAdapter.setDestinations(this.destinations);
-    }
-
-    private void addDestination(Destination destination) {
-        this.destinations.add(destination);
-        this.destinationAdapter.notifyNewDestinationInserted();
-        this.destinationCurrent=destination; // DESTINATION CURRENT
-        MapboxMap mapboxMap = LocationViewModel.getMapBox();
-        Style style = mapboxMap.getStyle();
-        if(style!=null){
-            LocationViewModel.initSymbolLayer(style,destination.getId(),destination.getId(),getApplication().getBaseContext());
-        }
-    }
-
-    Emitter.Listener onJoinToDestination = new Emitter.Listener() {
+    Emitter.Listener onGetMyDestinations = new Emitter.Listener() {
 
         @Override
         public void call(Object... args) {
-            Destination destination;
 
             try {
-                JSONObject data = (JSONObject) args[0];
-                if(data==null) {
-                    return;
-                }
-                String name = data.getString("name");
-                String id = data.getString("idDestination");
-                int color=Integer.parseInt(data.getString("color"));
-                int numUsers = Integer.parseInt(data.getString("numUsers"));
-                double latitude = Double.parseDouble( data.getString("latitude"));
-                double longitude =Double.parseDouble( data.getString("longitude"));
-                destination = new Destination();
-                destination.setColor(color);
-                destination.setName(name);
-                destination.setId(id);
-                destination.setNumUsers(numUsers);
-                destination.setLocalization(new Localization("",latitude,longitude));
-                destination.setListenerDestination(HomeViewModel.this);
-                addDestination(destination);
+                //last item of args is a ACK
+                for (int i =0;i<args.length;i++){
 
-            } catch (JSONException e) {
-                return;
+                    JSONObject data = (JSONObject) args[i];
+                    Destination destination = Destination.get(data);
+                    user.addDestination(destination);
+                }
+                //destination.setDestinationListener(HomeViewModel.this);
+            } catch (Exception e) {
+                Log.e("USER",e.toString());
             }
         }
     };
+    */
+
+
+
+
+
 
 
     /**
@@ -103,13 +92,6 @@ public class HomeViewModel extends AndroidViewModel
     @Override
     public void onClick(Destination destination) {
         // show Position of users
-        destinationCurrent=destination;
-    }
-
-    @Override
-    public void onDestinationSelected(Destination destination) {
-        // add to list
-        SocketIO.emitJoinToDestination(destination);
 
     }
 }

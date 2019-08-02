@@ -1,6 +1,7 @@
 package com.example.mrrobot.concurrent;
 
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.TextInputEditText;
@@ -12,19 +13,26 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.RadioButton;
+import android.widget.Switch;
 import android.widget.TextView;
 
+import com.example.mrrobot.concurrent.Firebase.Auth;
 import com.example.mrrobot.concurrent.Services.SocketIO;
+
 import com.example.mrrobot.concurrent.models.User;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
+import io.socket.client.Socket;
+
 public class loginActivity extends AppCompatActivity
-        implements View.OnClickListener{
+        implements View.OnClickListener, ISaveUserTask {
 
     private static final String TAG = "GoogleActivity";
     private static final int RC_SIGN_IN = 9001;
@@ -40,10 +48,10 @@ public class loginActivity extends AppCompatActivity
     private TextInputEditText editTextPassword;
     TextInputLayout emailLayout;
     TextInputLayout passLayout;
-    private RadioButton radioButton;
+    private Switch radioButton;
     private Button btnSignIn;
     private TextView statusTextView;
-
+    private  ProgressBar progressBar;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -53,7 +61,8 @@ public class loginActivity extends AppCompatActivity
         passLayout =(TextInputLayout) findViewById(R.id.pass_input_layout);
         this.editTextEmailAddress = (TextInputEditText)findViewById(R.id.inputEmail);
         this.editTextPassword = (TextInputEditText)findViewById(R.id.inputPass);
-        this.radioButton =(RadioButton) findViewById(R.id.radioIslogIn);
+        this.radioButton =(Switch) findViewById(R.id.swIslogIn);
+        this.progressBar= (ProgressBar) findViewById(R.id.progressBarLogin);
         this.radioButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
@@ -73,6 +82,7 @@ public class loginActivity extends AppCompatActivity
 
 
 
+
         // [START initialize_auth]
         mAuth = FirebaseAuth.getInstance();
 
@@ -88,35 +98,25 @@ public class loginActivity extends AppCompatActivity
         updateUI(currentUser);
     }
     private void signInEmailPassOrCreate() {
-        if(this.radioButton.isChecked()){
-            createWithEmailAndPass();
+        String email=this.emailLayout.getEditText().getText().toString();
+        String password=this.passLayout.getEditText().getText().toString();
+        if(isFormCorrect(email,password)){
+
+            showProgress(true);
+            if(this.radioButton.isChecked()){
+
+                createWithEmailAndPass(email,password);
+            }
+            else {
+                signInEmailPass(email,password);
+            }
         }
-        else {
-            signInEmailPass();
-        }
+
     }
 
+    private boolean isFormCorrect(String email,String password){
 
-    // [START onactivityresult]
-
-    // [END onactivityresult]
-
-    // [START auth_with_google]
-    // [END auth_with_google]
-
-
-    // [START signin]
-   /* private void signIn() {
-        Intent signInIntent = mGoogleSignInClient.getSignInIntent();
-        startActivityForResult(signInIntent, RC_SIGN_IN);
-    }*/
-
-    private boolean isFormCorrect(){
-
-        String email=this.emailLayout.getEditText().getText().toString();
-        String pass = this.passLayout.getEditText().getText().toString();
-
-        if( email.isEmpty() && pass.isEmpty()){
+        if( email.isEmpty() && password.isEmpty()){
             this.emailLayout.setError("Ingrese Email");
             this.passLayout.setError("ingrese Contraseña");
             return false;
@@ -127,15 +127,7 @@ public class loginActivity extends AppCompatActivity
         }
         //return !(email==""  && pass=="");
     }
-    private void signInEmailPass() {
-
-        if (!isFormCorrect()) {
-            //showAlert("Error","Ingrese Sus  Datos");
-            return;
-        }
-        String email=this.emailLayout.getEditText().getText().toString();
-        String password=this.passLayout.getEditText().getText().toString();
-        //showProgressDialog();
+    private void signInEmailPass(String email,String password) {
 
         // [START sign_in_with_email]
         mAuth.signInWithEmailAndPassword(email, password)
@@ -150,32 +142,19 @@ public class loginActivity extends AppCompatActivity
                         } else {
                             // If sign in fails, display a message to the user.
                             Log.w(TAG, "signInWithEmail:failure", task.getException());
-                            /*.makeText(AuthActivity.this, "Authentication failed.",
-                                    Toast.LENGTH_SHORT).show();*/
-                            //showAlert("Datos Incorrectos","Email o Password Incorrecto");
-                            //updateUI(null);
+
+                            showProgress(false);
                             loginActivity.this.emailLayout.setError("Email Incorrecto");
                             loginActivity.this.emailLayout.setError("Contrasela Incorecto");
                         }
 
-                        // [START_EXCLUDE]
-                        /*if (!task.isSuccessful()) {
-                            mStatusTextView.setText("R.string.auth_failed");
-                        }*/
-                        //hideProgressDialog();
-                        // [END_EXCLUDE]
                     }
                 });
         // [END sign_in_with_email]
     }
     // [END signin]
-    private void createWithEmailAndPass(){
-        if (!isFormCorrect()) {
-            //showAlert("Error","Ingrese Sus  Datos");
-            return;
-        }
-        String email=this.emailLayout.getEditText().getText().toString();
-        String password=this.passLayout.getEditText().getText().toString();
+    private void createWithEmailAndPass(String email,String password){
+
         mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
@@ -184,10 +163,12 @@ public class loginActivity extends AppCompatActivity
                             // Sign in success, update UI with the signed-in user's information
                             Log.d(TAG, "createUserWithEmail:success");
                             FirebaseUser user = mAuth.getCurrentUser();
-                            createUserInDB();
-                            createUserInServer();
-                            updateUI(user);
+
+                            SaveUserTask saveUserTask = new SaveUserTask(loginActivity.this);
+                            saveUserTask.execute(false);
+
                         } else {
+                            showProgress(false);
                             // If sign in fails, display a message to the user.
                             Log.w(TAG, "createUserWithEmail:failure", task.getException());
                             loginActivity.this.emailLayout.setError("Email Incorrecto");
@@ -211,12 +192,10 @@ public class loginActivity extends AppCompatActivity
                     }
                 });
     }*/
-    private void createUserInDB(){
+    private static void createUserInDB(){
         User.getCurrentUser().save();
     }
-    private void createUserInServer(){
-        SocketIO.saveThisUser(User.getCurrentUser().getId());
-    }
+
 
     private void updateUI(FirebaseUser user) {
         //hideProgressDialog();
@@ -226,22 +205,20 @@ public class loginActivity extends AppCompatActivity
             Intent intent   = new Intent(loginActivity.this,MainActivity.class);
             startActivity(intent);
 
-            /*mStatusTextView.setText(user.getEmail());
-            mDetailTextView.setText(user.getUid());
 
-            findViewById(R.id.sign_in_button).setVisibility(View.GONE);
-            findViewById(R.id.sign_out_and_disconnect).setVisibility(View.VISIBLE);*/
         } else {
-            // error
-            //this.statusTextView.setText("Algo esta Mal");
-            /*mStatusTextView.setText("R.string.signed_out");
-            mDetailTextView.setText(null);
 
-            findViewById(R.id.sign_in_button).setVisibility(View.VISIBLE);
-            findViewById(R.id.sign_out_and_disconnect).setVisibility(View.GONE);*/
         }
     }
+    private void startMainActivity(){
+        Intent intent   = new Intent(loginActivity.this,MainActivity.class);
+        startActivity(intent);
+    }
 
+    private void showProgress(Boolean show){
+
+        loginActivity.this.progressBar.setVisibility(show?View.VISIBLE:View.GONE);
+    }
     @Override
     public void onClick(View v) {
         int i = v.getId();
@@ -250,5 +227,65 @@ public class loginActivity extends AppCompatActivity
         }
     }
 
+    @Override
+    public void onPreExecute() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                showProgress(true);
+            }
+        });
+    }
 
+    @Override
+    public void onComplete() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                startMainActivity();
+            }
+        });
+    }
+
+    protected static class SaveUserTask extends AsyncTask<Boolean,Object,Boolean>{
+        private ISaveUserTask iSaveUserTask;
+        public SaveUserTask(ISaveUserTask iSaveUserTask) {
+            this.iSaveUserTask = iSaveUserTask;
+        }
+
+        @Override
+        protected void onPreExecute() {
+
+            super.onPreExecute();
+            this.iSaveUserTask.onPreExecute();
+        }
+
+        @Override
+        protected Boolean doInBackground(Boolean... booleans) {
+
+            FirebaseAuth mAuth;
+            while(Auth.getInstance()==null){
+
+            }
+            Socket socket = SocketIO.getSocket();
+            while (!socket.connected()){
+
+            }
+            createUserInDB();
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Boolean aBoolean) {
+            super.onPostExecute(aBoolean);
+            this.iSaveUserTask.onComplete();
+        }
+
+
+    }
+
+}
+ interface ISaveUserTask{
+    void onPreExecute();
+    void onComplete();
 }

@@ -32,6 +32,7 @@ public class DestinationAdapter extends RecyclerView.Adapter<DestinationAdapter.
                 DataBindingUtil.inflate(LayoutInflater.from(parent.getContext()), R.layout.destination,
                         parent, false);
 
+
         return new DestinationAdapterViewHolder(layoutDeviceBinding);
     }
 
@@ -50,6 +51,7 @@ public class DestinationAdapter extends RecyclerView.Adapter<DestinationAdapter.
      *
      */
     public void notifyNewDestinationInserted() {
+
         notifyItemInserted(this.destinations.size() - 1);
     }
 

@@ -1,10 +1,17 @@
 package com.example.mrrobot.concurrent.ui.destination;
 
+import android.app.Application;
+import android.arch.lifecycle.AndroidViewModel;
+import android.arch.lifecycle.MutableLiveData;
 import android.arch.lifecycle.ViewModel;
+import android.databinding.ObservableField;
+import android.support.annotation.MainThread;
+import android.widget.Toast;
 
 import com.example.mrrobot.concurrent.Services.SocketIO;
 import com.example.mrrobot.concurrent.models.Destination;
 import com.example.mrrobot.concurrent.models.Localization;
+import com.example.mrrobot.concurrent.models.User;
 import com.example.mrrobot.concurrent.ui.home.DestinationAdapter;
 import com.google.android.libraries.places.api.model.Place;
 import com.mapbox.mapboxsdk.geometry.LatLng;
@@ -18,30 +25,32 @@ import java.util.List;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
 
-public class DestinationViewModel extends ViewModel
-        implements Destination.IListenerDestination {
+public class DestinationViewModel extends AndroidViewModel
+        implements Destination.IDestinationListener {
 
 
     private Socket socket;
     private List<Destination> resultsDestination = new ArrayList<>();
-    public DestinationAdapter destinationAdapter;
+    public MutableLiveData<Boolean> hasNewDestination = new MutableLiveData<>();
 
-    private Destination destinationSelected;
-    private boolean isNewDestination = true;
+    private Destination newDestination;
 
-    public DestinationViewModel() {
-        initDestinationAdapter();
+    public ObservableField<Destination> destinationObservableField = new ObservableField<>();
+
+    public DestinationViewModel(Application application) {
+        super(application);
+
         this.socket = SocketIO.getSocket();
         this.socket.on("destinationsFound", onDestinationFound);
     }
 
     public void onPlaceSelected(Place place) {
 
-        Localization localization = new Localization("", place.getLatLng().latitude, place.getLatLng().longitude);
-        SocketIO.emitFindDestinations(localization);// response SERVE onDestinationFount
-        Destination destination = createTempDestination(place);
-        SocketIO.emitNewTempDestination(destination);// response Serve eonDestinationFount this dest with id
-
+        Localization localization = new Localization(place.getName(), place.getLatLng().latitude, place.getLatLng().longitude);
+        Destination.emitFindDestinations(localization);// response SERVE onDestinationFound
+        this.newDestination = createTempDestination(place);
+        // show in map and add to selected
+        Destination.destinationSelected.postValue(this.newDestination);
     }
 
     private Destination createTempDestination(Place place) {
@@ -53,8 +62,8 @@ public class DestinationViewModel extends ViewModel
         Destination destination = new Destination();
         destination.setName(name);
         destination.setLocalization(localization);
-        destination.setNumUsers(2);
-        destination.setListenerDestination(this);
+        destination.setNumUsers(0);
+        destination.setDestinationListener(this);
         return destination;
     }
 
@@ -64,45 +73,24 @@ public class DestinationViewModel extends ViewModel
         @Override
         public void call(Object... args) {
 
-            Destination destination;
             try {
-                JSONObject data = (JSONObject) args[0];
-                if (data == null) {
-                    return;
+                List<Destination> destinations = Destination.destinationsToList(args);
+                for (Destination destination : destinations) {
+                    destination.setDestinationListener(DestinationViewModel.this);
+                    addToListOfResults(destination);
                 }
-                String name = data.getString("name");
-                String id = data.getString("idDestination");
-                int numUsers = Integer.parseInt(data.getString("numUsers"));
-                String latitudeStr=data.getString("latitude");
+            } catch (NullPointerException e) {
 
-                double latitude = Double.parseDouble(latitudeStr);
-                double longitude = Double.parseDouble(data.getString("longitude"));
-                destination = new Destination();
-                destination.setName(name);
-                destination.setId(id);
-                destination.setNumUsers(numUsers);
-                destination.setLocalization(new Localization("", latitude, longitude));
-                destination.setListenerDestination(DestinationViewModel.this);
-                addToListOfResults(destination);
-
-            } catch (JSONException e) {
-
-                return;
             }
-            // show in list
         }
     };
 
 
-    private void initDestinationAdapter() {
-        this.destinationAdapter = new DestinationAdapter();
-        this.destinationAdapter.setDestinations(this.resultsDestination);
-
-    }
-
     private void addToListOfResults(Destination destination) {
         this.resultsDestination.add(destination);
-        this.destinationAdapter.notifyNewDestinationInserted();
+        this.hasNewDestination.postValue(true);
+        //this.destinationAdapter.notifyNewDestinationInserted();
+
     }
 
     /**
@@ -112,21 +100,41 @@ public class DestinationViewModel extends ViewModel
      */
     @Override
     public void onClick(Destination destination) {
-        // join and close.
-        this.destinationSelected = destination;
-        isNewDestination = false;
-    }
 
-    public void OnSubmit(){
+        Destination.destinationSelected.postValue(destination);
+        destinationObservableField.set(destination);
 
     }
-    public Destination getDestinationSelected() {
-        if (isNewDestination) {
-            //SocketIO.emitNewDestination(destinationSelected);
-            // response with id of Destination.
-        } else {
-            //SocketIO.emitJoinToDestination(destinationSelected);
+
+    public void OnSubmit() {
+        Destination destinationSelected = Destination.destinationSelected.getValue();
+        if (destinationSelected != null) {
+            User current =User.getCurrentUser();
+            String idDestination=destinationSelected.getId();
+            // is new ?
+            if(idDestination==null){
+                // create a new Destination
+                current.createDestination(destinationSelected);
+            }
+            else {
+                String userId = current.getIdGoogle();
+                if(current.isMyDestination(idDestination)){
+                    Toast.makeText(getApplication().getApplicationContext(),"Ya esta Dentro",Toast.LENGTH_LONG).show();
+                }
+                else{
+                    Destination.emitJoinToDestination(destinationSelected.getId(), userId);
+                }
+
+            }
         }
-        return destinationSelected;
+    }
+    public void deleteSelection(){
+
+        Destination.destinationSelected.postValue(null);
+    }
+
+
+    public List<Destination> getResultsDestination() {
+        return resultsDestination;
     }
 }
