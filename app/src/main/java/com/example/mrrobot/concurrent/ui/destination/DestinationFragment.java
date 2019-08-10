@@ -138,7 +138,7 @@ public class DestinationFragment extends DialogFragment implements View.OnClickL
                 Log.i(TAG, "Place: " + place.getName() + ", " + place.getId());
 
 
-                this.destinationViewModel.onPlaceSelected(place);
+                this.destinationViewModel.onPlaceSelected(place,false);
 
                 //DestinationFragment.this.destinationListener.onPlaceSelected(place);
 

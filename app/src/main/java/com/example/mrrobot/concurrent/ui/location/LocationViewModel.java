@@ -22,6 +22,7 @@ import com.example.mrrobot.concurrent.R;
 import com.example.mrrobot.concurrent.Services.SocketIO;
 import com.example.mrrobot.concurrent.models.Destination;
 import com.example.mrrobot.concurrent.models.Localization;
+import com.example.mrrobot.concurrent.models.User;
 import com.mapbox.android.core.location.LocationEngine;
 import com.mapbox.android.core.location.LocationEngineCallback;
 import com.mapbox.android.core.location.LocationEngineRequest;
@@ -174,7 +175,7 @@ public class LocationViewModel extends AndroidViewModel implements
     }
     public  void goToDestination(Destination destination) {
 
-        LatLng latLng = destination.getLocalization().toLatLng();
+        LatLng latLng = destination.getLocalization();
         this.mapboxMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
     }
 
@@ -227,7 +228,6 @@ public class LocationViewModel extends AndroidViewModel implements
         // Get an instance of the component
         LocationComponent locationComponent = mapboxMap.getLocationComponent();
 
-
         // Activate
         Style style = mapboxMap.getStyle();
         locationComponent.activateLocationComponent(getApplication().getApplicationContext(), style);
@@ -267,6 +267,7 @@ public class LocationViewModel extends AndroidViewModel implements
         // Localization logic here
 
         Location lastLocation = result.getLastLocation();
+        User.getCurrentUser().myLocation.setValue(lastLocation);
         Localization localization = new Localization("",lastLocation.getLatitude(),lastLocation.getLongitude());
         SocketIO.emitMyLocalizationChange(localization);
     }

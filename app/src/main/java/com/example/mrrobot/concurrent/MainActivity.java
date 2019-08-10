@@ -188,11 +188,10 @@ public class MainActivity extends AppCompatActivity
         int id = view.getId();
         switch (id) {
             case R.id.btnChats:
-                getApplicationContext().startActivity(new Intent(getApplicationContext(), DialogsActivity.class));
+                startActivity(new Intent(getApplicationContext(), DialogsActivity.class));
                 break;
             case R.id.btnFormLocation:
-
-                getApplicationContext().startActivity(new Intent(getApplicationContext(), DestinationActivity.class));
+                startActivity(new Intent(getApplicationContext(), DestinationActivity.class));
                 //showDialogTheme();
                 break;
             case R.id.btnLogOut:

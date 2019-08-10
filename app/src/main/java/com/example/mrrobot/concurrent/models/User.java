@@ -1,6 +1,7 @@
 package com.example.mrrobot.concurrent.models;
 
 import android.arch.lifecycle.MutableLiveData;
+import android.location.Location;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
@@ -41,6 +42,8 @@ public class User implements IUser {
     private List<Chat> myChats = new ArrayList<>();
     private List<Destination> myDestinations = new ArrayList<>();
     public MutableLiveData<Destination> hasNewDestination= new MutableLiveData<>();
+
+    public MutableLiveData<Location> myLocation = new MutableLiveData<>();
     public IUserListeners userListeners;
     public Chat.IChatListener chatListener;
 

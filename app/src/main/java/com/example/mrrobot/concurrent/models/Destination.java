@@ -11,6 +11,7 @@ import com.example.mrrobot.concurrent.BR;
 import com.example.mrrobot.concurrent.Services.SocketIO;
 import com.example.mrrobot.concurrent.Utils.RandomColors;
 import com.example.mrrobot.concurrent.Utils.Utils;
+import com.mapbox.mapboxsdk.geometry.LatLng;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -26,7 +27,7 @@ public class Destination extends BaseObservable {
 
     private String id;
     private int numUsers;
-    private Localization localization;
+    private LatLng localization;
     private int color;
     private String name;
     private Chat chat;
@@ -43,13 +44,13 @@ public class Destination extends BaseObservable {
         socket.emit("joinToDestination", Utils.toJsonObject("idDestination", idDestination, "userID", idUser));
     }
 
-    public static void emitFindDestinations(Localization localization) {
+    public static void emitFindDestinations(Destination destination) {
         Socket socket = SocketIO.getSocket();
         JSONObject jsonObject = new JSONObject();
         try {
-            jsonObject.put("name", localization.getName());
-            jsonObject.put("latitude", localization.getLatitude() + "");
-            jsonObject.put("longitude", localization.getLongitude() + "");
+            jsonObject.put("name", destination.getName());
+            jsonObject.put("latitude", destination.getLocalization().getLatitude() + "");
+            jsonObject.put("longitude", destination.getLocalization().getLongitude() + "");
             jsonObject.put("userID", User.getCurrentUser().getIdGoogle());
 
             socket.emit("findDestinations", jsonObject);
@@ -67,7 +68,7 @@ public class Destination extends BaseObservable {
             // Localization localization;
             // int color;
             // String name;
-            Localization localization = destination.getLocalization();
+            LatLng localization = destination.getLocalization();
             jsonObject.put("numUsers", destination.getNumUsers() + "");
             jsonObject.put("name", destination.getName());
             jsonObject.put("color", destination.getColor() + "");
@@ -115,7 +116,7 @@ public class Destination extends BaseObservable {
             destination.setName(name);
             destination.setId(id);
             destination.setNumUsers(numUsers);
-            destination.setLocalization(new Localization("", latitude, longitude));
+            destination.setLocalization(new LatLng( latitude, longitude));
         } catch (JSONException e) {
             throw new Exception("this isn't a destination");
         }
@@ -166,11 +167,11 @@ public class Destination extends BaseObservable {
         notifyPropertyChanged(BR.numUsers);
     }
 
-    public Localization getLocalization() {
+    public LatLng getLocalization() {
         return localization;
     }
 
-    public void setLocalization(Localization localization) {
+    public void setLocalization(LatLng localization) {
         this.localization = localization;
     }
 

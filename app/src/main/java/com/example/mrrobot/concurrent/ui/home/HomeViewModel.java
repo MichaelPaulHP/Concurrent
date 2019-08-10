@@ -41,7 +41,7 @@ public class HomeViewModel extends AndroidViewModel
         super(application);
 
         user=User.getCurrentUser();
-        user.requestMyDestinations();
+        //user.requestMyDestinations();
         //requestMyDestinations();
         user.startOnJoinToDestination();
 

@@ -7,6 +7,7 @@ import android.util.Log;
 import com.example.mrrobot.concurrent.models.Destination;
 import com.example.mrrobot.concurrent.models.Localization;
 import com.example.mrrobot.concurrent.models.User;
+import com.mapbox.mapboxsdk.geometry.LatLng;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -63,7 +64,7 @@ public class SocketIO {
             // Localization localization;
             // int color;
             // String name;
-            Localization localization = destination.getLocalization();
+            LatLng localization = destination.getLocalization();
             jsonObject.put("numUsers", destination.getNumUsers()+"");
             jsonObject.put("name", destination.getName());
             jsonObject.put("color", destination.getColor()+"");
