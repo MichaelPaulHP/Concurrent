@@ -77,6 +77,7 @@ public class DestinationActivity extends AppCompatActivity implements View.OnCli
         this.binding.btnMyDestination.setOnClickListener(this);
         this.binding.btnFindMyDestination.setOnClickListener(this);
         this.binding.btnFindMyOrigin.setOnClickListener(this);
+        this.binding.btnReadyForJoined.setOnClickListener(this);
 
         this.binding.btnSubmitDestination.setOnClickListener(this);
         this.recyclerViewDestinationsFound = this.binding.rvDestinationsFound;
@@ -98,6 +99,7 @@ public class DestinationActivity extends AppCompatActivity implements View.OnCli
 
         } else {
             sheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+            this.destinationViewModel.hideDestinationFoundSymbol();
             //btnBottomSheet.setText("Expand sheet");
         }
     }
@@ -142,6 +144,7 @@ public class DestinationActivity extends AppCompatActivity implements View.OnCli
                     @Override
                     public void run() {
                         DestinationActivity.this.binding.btnMyDestination.setText(aDestination.getName());
+                        showLayoutToJoin();
                         DestinationActivity.this.binding.setDestinationSelected(aDestination);
                         //DestinationActivity.this.binding.viewStubDestinationSelected.getViewStub().inflate();
 
@@ -221,9 +224,9 @@ public class DestinationActivity extends AppCompatActivity implements View.OnCli
     }
 
     private void onSubmit() {
-
         this.destinationViewModel.OnSubmit();
         // close activity
+        // Todo: go back (main activity)
     }
     private void goTo(MutableLiveData<Destination> destinationMutableLiveData){
         Destination destination= destinationMutableLiveData.getValue();
@@ -231,6 +234,9 @@ public class DestinationActivity extends AppCompatActivity implements View.OnCli
             LatLng latLng = destination.getLocalization();
             this.destinationViewModel.goLatLng(latLng);
         }
+    }
+    private void showLayoutToJoin(){
+        this.binding.layoutToDestination.setVisibility(View.VISIBLE);
     }
     @Override
     public void onClick(View view) {
@@ -252,6 +258,10 @@ public class DestinationActivity extends AppCompatActivity implements View.OnCli
                 onSubmit();
                 break;
             case R.id.btnBottomSheet:
+                toggleBottomSheet();
+                break;
+            case R.id.btnReadyForJoined:
+                this.destinationViewModel.setDestinationFoundToMyDestination();
                 toggleBottomSheet();
                 break;
         }

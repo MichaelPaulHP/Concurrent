@@ -116,11 +116,13 @@
             <!--BOTTON view MyDestination-->
 
             <RelativeLayout
+                android:id="@+id/layoutToDestination"
                 android:layout_width="match_parent"
                 android:layout_height="100dp"
                 android:layout_alignParentEnd="true"
                 android:layout_alignParentBottom="true"
                 android:layout_marginBottom="30dp"
+                android:visibility="invisible"
                 >
 
                 <!--<Button
@@ -136,8 +138,6 @@
                     android:layout_height="wrap_content"
                     android:layout="@layout/destination"
                     />-->
-
-
                 <include
                     layout="@layout/destination"
                     bind:destination='@{destinationSelected}' />
@@ -187,8 +187,15 @@
 
             </android.support.v7.widget.RecyclerView>
 
+            <Button
+                android:id="@+id/btnReadyForJoined"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="?attr/color_accent"
+                android:text="Add To Join" />
 
         </LinearLayout>
+
     </android.support.design.widget.CoordinatorLayout>
 
 </layout>

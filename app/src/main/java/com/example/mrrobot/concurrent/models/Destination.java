@@ -8,6 +8,7 @@ import android.util.Log;
 import android.widget.ImageView;
 
 import com.example.mrrobot.concurrent.BR;
+import com.example.mrrobot.concurrent.Firebase.DB.ChatData;
 import com.example.mrrobot.concurrent.Services.SocketIO;
 import com.example.mrrobot.concurrent.Utils.RandomColors;
 import com.example.mrrobot.concurrent.Utils.Utils;
@@ -39,15 +40,19 @@ public class Destination extends BaseObservable {
     }
 
 
-    public static void emitJoinToDestination(String idDestination, String idUser) {
+    public static void emitJoinToDestination(String idDestination) {
+        String idUser= User.getCurrentUser().getIdGoogle();
         Socket socket = SocketIO.getSocket();
         socket.emit("joinToDestination", Utils.toJsonObject("idDestination", idDestination, "userID", idUser));
     }
 
-    public static void emitFindDestinations(Destination destination) {
+    public static void emitFindDestinations(Destination origin,Destination destination) {
         Socket socket = SocketIO.getSocket();
         JSONObject jsonObject = new JSONObject();
         try {
+
+            jsonObject.put("originLatitude", origin.getLocalization().getLatitude() + "");
+            jsonObject.put("originLongitude", origin.getLocalization().getLongitude() + "");
             jsonObject.put("name", destination.getName());
             jsonObject.put("latitude", destination.getLocalization().getLatitude() + "");
             jsonObject.put("longitude", destination.getLocalization().getLongitude() + "");
@@ -60,7 +65,16 @@ public class Destination extends BaseObservable {
 
     }
 
-    public static void emitNewDestination(Destination destination,String idChat) {
+    public static void emitNewDestination(Destination destination){
+        String idChat= ChatData.getAnId();
+        User current = User.getCurrentUser();
+        Chat chat = new Chat(destination.getName(),current.getIdGoogle());
+        chat.setKey(idChat);
+        current.saveChatAndJoint(chat);
+        Destination.emitNewDestination(destination,idChat);
+    }
+
+    private static void emitNewDestination(Destination destination,String idChat) {
         Socket socket = SocketIO.getSocket();
         JSONObject jsonObject = new JSONObject();
         try {
@@ -100,7 +114,15 @@ public class Destination extends BaseObservable {
         }
         return destinations;
     }
+    public static Destination findDestinationInListById(List<Destination> list,Destination x){
 
+        for (Destination destination:  list) {
+            if(destination.getId().equals(x.getId())){
+                return destination;
+            }
+        }
+        return null;
+    }
     public static Destination get(JSONObject data) throws Exception {
         Destination destination = null;
             String name;

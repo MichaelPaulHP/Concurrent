@@ -112,14 +112,7 @@ public class User implements IUser {
         }
     }
 
-    public void createDestination(Destination destination){
-        String idChat= ChatData.getAnId();
-        User current = User.getCurrentUser();
-        Chat chat = new Chat(destination.getName(),current.getIdGoogle());
-        chat.setKey(idChat);
-        current.saveChatAndJoint(chat);
-        Destination.emitNewDestination(destination,idChat);
-    }
+
     public void startOnJoinToDestination(){
         Socket socket = SocketIO.getSocket();
         socket.on("joinToDestination",onJoinToDestination);
