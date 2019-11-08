@@ -17,7 +17,7 @@ public class DestinationAdapter extends RecyclerView.Adapter<DestinationAdapter.
 
 
     private List<Destination> destinations;
-
+    private IEventListener iEventListener;
 
     public DestinationAdapter() {
 
@@ -55,14 +55,18 @@ public class DestinationAdapter extends RecyclerView.Adapter<DestinationAdapter.
         notifyItemInserted(this.destinations.size() - 1);
     }
 
-    public interface ClickListener {
+    public void setEventListener(IEventListener iEventListener) {
+        this.iEventListener = iEventListener;
+    }
+
+    public interface IEventListener {
         /**
-         * event on item's click
+         * Called when a Destination layout has been clicked of list
          *
-         * @param position is list
-         * @param destination     is a chat
+         * @param position in list
+         * @param destination is a Destination
          */
-        void onItemClick(int position, Destination destination);
+        void onDestinationClick(int position, Destination destination);
         //void onItemLongClick(int position, View v);
     }
 
@@ -72,7 +76,7 @@ public class DestinationAdapter extends RecyclerView.Adapter<DestinationAdapter.
     }
 
 
-    public class DestinationAdapterViewHolder extends RecyclerView.ViewHolder  {
+    public class DestinationAdapterViewHolder extends RecyclerView.ViewHolder  implements View.OnClickListener  {
         private DestinationBinding destinationBinding;
 
         public DestinationAdapterViewHolder(DestinationBinding destinationBinding) {
@@ -87,7 +91,16 @@ public class DestinationAdapter extends RecyclerView.Adapter<DestinationAdapter.
             }
 
         }
-
-
+        /**
+         * Called when a view has been clicked.
+         *
+         * @param v The view that was clicked.
+         */
+        @Override
+        public void onClick(View v) {
+            if(iEventListener!=null){
+            iEventListener.onDestinationClick(getAdapterPosition(),destinationBinding.getDestination());
+            }
+        }
     }
 }

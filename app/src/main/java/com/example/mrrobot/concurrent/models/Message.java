@@ -48,6 +48,14 @@ public class Message implements IMessage,Cloneable
         this.text = text;
     }
 
+    public static Message findMessageById(List<Message> messages, Message message){
+        for(Message m:messages){
+            if(m.getId().equals(message.getId())){
+                return m;
+            }
+        }
+        return null;
+    }
 
     /**
      * Returns message identifier

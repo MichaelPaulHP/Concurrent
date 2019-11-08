@@ -53,9 +53,6 @@ public class MainActivity extends AppCompatActivity
     HomeViewModel homeViewModel;
 
 
-
-
-
     private RecyclerView recyclerViewListDestinations;
     DestinationAdapter destinationAdapter;
 
@@ -96,7 +93,7 @@ public class MainActivity extends AppCompatActivity
 
         findViewById(R.id.optionsTop).bringToFront();
         findViewById(R.id.optionsBot).bringToFront();
-        this.progressBar=(ProgressBar) findViewById(R.id.mainProgressBar);
+        this.progressBar = (ProgressBar) findViewById(R.id.mainProgressBar);
 
         findViewById(R.id.btnTest).setOnClickListener(this);
 
@@ -138,15 +135,16 @@ public class MainActivity extends AppCompatActivity
                     @Override
                     public void run() {
                         MainActivity.this.destinationAdapter.notifyNewDestinationInserted();
-                        destination.setDestinationListener(locationViewModel);
+                        //destination.setDestinationListener(locationViewModel);
                     }
                 });
 
             }
         };
-        User.getCurrentUser().hasNewDestination.observe(this,newDestinationObserver);
+        User.getCurrentUser().hasNewDestination.observe(this, newDestinationObserver);
 
     }
+
     private void subscribeConnectTask() {
 
         final Observer<Boolean> observer = new Observer<Boolean>() {
@@ -156,30 +154,34 @@ public class MainActivity extends AppCompatActivity
                     @Override
                     public void run() {
                         showProgressBar(!isConnected);
-
-
-
                     }
                 });
 
             }
         };
 
-        SocketIO.isConnected.observe(this,observer);
+        SocketIO.isConnected.observe(this, observer);
 
     }
+
+
     private void initRecyclerViewOfDestinations() {
         this.recyclerViewListDestinations = findViewById(R.id.recyclerViewListDestinations);
-        this.recyclerViewListDestinations.setLayoutManager(new LinearLayoutManager(getApplicationContext(), LinearLayoutManager.HORIZONTAL, false));
+        this.recyclerViewListDestinations.
+                setLayoutManager(
+                        new LinearLayoutManager(
+                                getApplicationContext(),
+                                LinearLayoutManager.HORIZONTAL,
+                                false));
         destinationAdapter = new DestinationAdapter();
         this.recyclerViewListDestinations.setAdapter(destinationAdapter);
 
         destinationAdapter.setDestinations(User.getCurrentUser().getMyDestinations());
     }
 
-    private void showProgressBar(Boolean show){
+    private void showProgressBar(Boolean show) {
 
-            this.progressBar.setVisibility(show? View.VISIBLE:View.GONE);
+        this.progressBar.setVisibility(show ? View.VISIBLE : View.GONE);
 
     }
 
@@ -202,10 +204,12 @@ public class MainActivity extends AppCompatActivity
                 break;
         }
     }
-    private void test(){
+
+    private void test() {
         //User.getCurrentUser().requestMyDestinations();
     }
-    public void showDialogTheme(){
+
+    public void showDialogTheme() {
         /*DialogFragment themeDialogFragment = new DestinationFragment();
         themeDialogFragment.show(getFragmentManager(), "DialogFragmentFragment");*/
 
@@ -231,8 +235,6 @@ public class MainActivity extends AppCompatActivity
     public void onPermissionResult(boolean granted) {
 
     }
-
-
 
 
     //////////////////////
@@ -280,7 +282,6 @@ public class MainActivity extends AppCompatActivity
     //////////
     // End LIFE CYCLE
     ///////////////////////////////////////////////////
-
 
 
 }

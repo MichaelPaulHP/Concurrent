@@ -36,26 +36,6 @@ public class DialogsActivity extends AppCompatActivity {
         initListOfMessages();
         initMessageInput();
 
-        findViewById(R.id.btnTestCreateChat).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Toast.makeText(getApplicationContext(),"click create chat",Toast.LENGTH_LONG).show();
-                chatViewModel.testCreateChatAndJoin();
-            }
-        });
-        findViewById(R.id.btnTestCreateUser).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                chatViewModel.testCreateUser();
-            }
-        });
-        findViewById(R.id.btnTestSendMessage).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Toast.makeText(getApplicationContext(),"nooo",Toast.LENGTH_LONG).show();
-                //chatViewModel.testSaveMessage();
-            }
-        });
     }
 
 

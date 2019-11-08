@@ -14,6 +14,7 @@ public class Localization {
     }
 
     public Localization() {
+        LatLng latLng;
 
     }
     public LatLng toLatLng(){

@@ -12,6 +12,7 @@ import com.example.mrrobot.concurrent.Firebase.DB.UserData;
 
 import com.example.mrrobot.concurrent.Services.SocketIO;
 import com.example.mrrobot.concurrent.Utils.Utils;
+import com.example.mrrobot.concurrent.entityes.DestinationEntity;
 import com.google.android.gms.tasks.OnSuccessListener;
 
 import com.google.android.gms.tasks.Task;
@@ -24,7 +25,6 @@ import com.stfalcon.chatkit.commons.models.IUser;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import io.socket.client.Socket;
@@ -45,7 +45,7 @@ public class User implements IUser {
 
     public MutableLiveData<Location> myLocation = new MutableLiveData<>();
     public IUserListeners userListeners;
-    public Chat.IChatListener chatListener;
+    //public Chat.IChatListener chatListener;
 
     public User(String id, String idGoogle, String name, String avatar) {
         this.id = id;
@@ -80,21 +80,20 @@ public class User implements IUser {
         boolean lister= socket.hasListeners("getMyDestinations");
     }
 
-    Emitter.Listener onGetMyDestinations = new Emitter.Listener() {
+    private Emitter.Listener onGetMyDestinations = new Emitter.Listener() {
 
         @Override
         public void call(Object... args) {
 
             try {
-                //last item of args is a ACK
-                for (int i =0;i<args.length;i++){
-
-                    JSONObject data = (JSONObject) args[i];
-                    Destination destination = Destination.get(data);
+                List<Destination> destinations = DestinationEntity.readDestinations(args);
+                for (Destination destination : destinations) {
                     getCurrentUser().addDestination(destination);
                 }
+
                 //destination.setDestinationListener(HomeViewModel.this);
-            } catch (Exception e) {
+            }
+            catch (Exception e) {
                 Log.e("USER",e.toString());
             }
         }
@@ -118,20 +117,18 @@ public class User implements IUser {
         socket.on("joinToDestination",onJoinToDestination);
     }
 
-    Emitter.Listener onJoinToDestination = new Emitter.Listener() {
+    private Emitter.Listener onJoinToDestination = new Emitter.Listener() {
 
         @Override
         public void call(Object... args) {
-            Destination destination;
+
 
             try {
-                JSONObject data = (JSONObject) args[0];
-                if(data==null) {
-                    return;
+                List<Destination> destinations = DestinationEntity.readDestinations(args);
+                for (Destination destination : destinations) {
+
+                    getCurrentUser().addDestination(destination);
                 }
-                destination=Destination.get(data);
-                //destination.setDestinationListener(HomeViewModel.this);
-                addDestination(destination);
 
             } catch (Exception e) {
 
@@ -155,19 +152,19 @@ public class User implements IUser {
     /////////////// CHAT
     /////////////////////////////////////////////
 
-    public void joinToChat(final Chat chat) {
+
+    private void joinToChat(final Chat chat) {
 
         UserData.jointToChat(this, chat).addOnSuccessListener(new OnSuccessListener<Void>() {
             @Override
             public void onSuccess(Void aVoid) {
                 User.this.addChat(chat);
-                chat.addParticipants(User.this);
-
+                chat.addParticipant(User.this);
             }
         });
     }
 
-    public void saveChatAndJoint(final Chat x) {
+    public void saveChatAndJoin(final Chat x) {
         ChatData.saveChat(x).addOnSuccessListener(new OnSuccessListener<Void>() {
             @Override
             public void onSuccess(Void aVoid) {
@@ -193,14 +190,13 @@ public class User implements IUser {
         UserData.getMyChats(this, getMyChatsFromDB);
     }
 
-    ValueEventListener getMyChatsFromDB = new ValueEventListener() {
+    private ValueEventListener getMyChatsFromDB = new ValueEventListener() {
         @Override
         public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
 
             for (DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
                 ChatData newChatData = postSnapshot.getValue(ChatData.class);
                 Chat chat = newChatData.toChat();
-                chat.requestParticipants();
                 User.this.addChat(chat);///
             }
         }
@@ -211,12 +207,20 @@ public class User implements IUser {
         }
     };
 
-    public void addChat(Chat chat) {
-        this.myChats.add(chat);
-        this.numChats = numChats + 1;
-        chat.requestMyMessages();
-        chat.chatListener = this.chatListener;
-        chat.setListenerForNewMessagesFromDB();
+    private void addChat(Chat chat) {
+        Chat chatInMemory=Chat.findChat(this.myChats,chat);
+        if(chatInMemory==null){
+            this.myChats.add(chat);
+            this.numChats = numChats + 1;
+            this.userListeners.onNewChat();
+            // todo: listener?
+            chat.chatListener = this.userListeners;
+            chat.requestParticipants();
+            chat.requestMyMessages();
+
+            chat.initListenerForNewMessagesFromDB();
+        }
+
     }
 
     public Double getNumChats() {
@@ -265,12 +269,22 @@ public class User implements IUser {
         return this.avatar;
     }
 
+    public static  User findUserById(List<User> users,User user){
 
-    public interface IUserListeners {
+        for(User u:users){
+            if(u.getId().equals(user.getId())){
+                return u;
+            }
+        }
+        return null;
+    }
+
+
+    public interface IUserListeners extends Chat.IChatListener {
         /**
          * when this user join to chat
          */
-        void onJoinToChat();
+        void onNewChat();
 
     }
 }

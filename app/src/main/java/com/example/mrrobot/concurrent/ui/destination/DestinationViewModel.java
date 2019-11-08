@@ -4,7 +4,6 @@ import android.app.Application;
 import android.arch.lifecycle.AndroidViewModel;
 import android.arch.lifecycle.MutableLiveData;
 import android.content.res.Resources;
-import android.databinding.ObservableField;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -14,13 +13,18 @@ import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.example.mrrobot.concurrent.Config.MapBox;
 import com.example.mrrobot.concurrent.R;
 import com.example.mrrobot.concurrent.Services.SocketIO;
+import com.example.mrrobot.concurrent.Utils.DestinationSymbol;
+import com.example.mrrobot.concurrent.Utils.IMessenger;
+import com.example.mrrobot.concurrent.Utils.SymbolPrinter;
+import com.example.mrrobot.concurrent.entityes.DestinationEntity;
 import com.example.mrrobot.concurrent.models.Destination;
+import com.example.mrrobot.concurrent.models.DestinationData;
 import com.example.mrrobot.concurrent.models.User;
+import com.example.mrrobot.concurrent.ui.home.DestinationAdapter;
 import com.google.android.libraries.places.api.model.Place;
 import com.mapbox.api.geocoding.v5.GeocodingCriteria;
 import com.mapbox.api.geocoding.v5.MapboxGeocoding;
@@ -38,9 +42,9 @@ import com.mapbox.mapboxsdk.maps.Style;
 import com.mapbox.mapboxsdk.plugins.annotation.OnSymbolDragListener;
 import com.mapbox.mapboxsdk.plugins.annotation.Symbol;
 import com.mapbox.mapboxsdk.plugins.annotation.SymbolManager;
-import com.mapbox.mapboxsdk.plugins.annotation.SymbolOptions;
 import com.mapbox.mapboxsdk.utils.BitmapUtils;
-import com.mapbox.mapboxsdk.utils.ColorUtils;
+
+import org.json.JSONException;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -52,9 +56,10 @@ import io.socket.emitter.Emitter;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import timber.log.Timber;
 
 public class DestinationViewModel extends AndroidViewModel
-        implements OnMapReadyCallback, Destination.IDestinationListener, OnSymbolDragListener {
+        implements OnMapReadyCallback, DestinationAdapter.IEventListener, OnSymbolDragListener {
 
     private MapView mapView;
     private MapboxMap mapboxMap;
@@ -64,18 +69,23 @@ public class DestinationViewModel extends AndroidViewModel
     private List<Destination> resultsDestination = new ArrayList<>();
     public MutableLiveData<Boolean> hasNewDestination = new MutableLiveData<>();
 
+    private SymbolPrinter symbolPrinter;
 
-    public MutableLiveData<Destination> myDestination = new MutableLiveData<>();
-    public MutableLiveData<Destination> myOrigin = new MutableLiveData<>();
+    private Destination myDestinationTemp;
+    private Location origin;
+    private Location destination;
+
     private Symbol originSymbol;
     private Symbol destinationSymbol;
 
-    private Symbol destinationFoundSymbol;
-    private Destination destinationFound;
+
+    public MutableLiveData<Destination> destinationFound = new MutableLiveData<>();
+    private DestinationSymbol destinationFoundSymbol;
 
     private static final String MAKI_ICON_MARKER = "marker-stroked-15";
     private static final String ICON_PLACE = "ic-place";
 
+    private IMessenger messenger;
     private String TAG = "DestinationViewModel";
 
     //////////////////////////////
@@ -88,6 +98,7 @@ public class DestinationViewModel extends AndroidViewModel
 
         this.socket = SocketIO.getSocket();
         this.socket.on("destinationsFound", onDestinationFound);
+        createMyDestinationTemp();
     }
 
     public void initMapView(MapView mapView, Bundle savedInstanceState) {
@@ -112,7 +123,8 @@ public class DestinationViewModel extends AndroidViewModel
 
                 configSymbolManager(style);
                 addIcon(style);
-                printAndGoMyLocation();
+
+                printAndGoMyOrigin();
 
 
             }
@@ -120,13 +132,8 @@ public class DestinationViewModel extends AndroidViewModel
     }
 
     private void configSymbolManager(Style style) {
-        DestinationViewModel.this.symbolManager = new SymbolManager(mapView, mapboxMap, style);
-        symbolManager.setIconAllowOverlap(true);
-        symbolManager.setTextAllowOverlap(true);
-        //symbolManager.addClickListener
-        //symbolManager.addLongClickListener
-        //symbolManager.addDragListener
-        symbolManager.addDragListener(this);
+        this.symbolPrinter = new SymbolPrinter(mapView, mapboxMap);
+        this.symbolPrinter.addDragListener(this);
 
     }
 
@@ -140,72 +147,136 @@ public class DestinationViewModel extends AndroidViewModel
         }
     }
 
-    private void printAndGoMyLocation() {
+    private void createMyDestinationTemp() {
+        this.origin = getMyLocation();
+        if (this.origin != null) {
+
+            this.myDestinationTemp = new Destination(null, User.getCurrentUser().getId());
+            this.myDestinationTemp.initMutableLiveData();
+            this.myDestinationTemp.setOrigin(this.origin);
+        }
+    }
+
+    private void printAndGoMyOrigin() {
+
+        printOrigin();
+        goLocation(this.origin);
+    }
+
+    private Location getMyLocation() {
 
         Location location = User.getCurrentUser().myLocation.getValue();
-        if(location==null){
-            location=this.mapboxMap.getLocationComponent().getLastKnownLocation();
+        if (location == null) {
+            location = this.mapboxMap.getLocationComponent().getLastKnownLocation();
         }
-        if (location != null) {
-            Double lat = location.getLatitude();
-            Double lon = location.getLongitude();
-            LatLng latLng = new LatLng(lat, lon);
-            Destination destination = createTempDestination(" origin", latLng);
-            this.myOrigin.postValue(destination);
-            int color = Color.BLACK;
-            this.originSymbol = createSymbol(latLng, color);
-            goLatLng(latLng);
-            getAddressFromLatLng(latLng, myOrigin);
-        }
+        return location;
     }
 
-    public void onPlaceSelected(Place place, boolean isMyDestination) {
+
+    private void printOrigin() {
+        int color = Color.BLACK;
+        this.originSymbol= this.symbolPrinter.printSymbol(
+                this.originSymbol,
+                new LatLng(this.origin),
+                color,
+                ICON_PLACE);
+    }
+
+
+    public void onPlaceSelected(Place place, boolean isDestination) {
         Double latitude = place.getLatLng().latitude;
         Double longitude = place.getLatLng().longitude;
+        //LatLng latLngPLace = place.getLatLng();
         String name = place.getName();
-        LatLng latLng = new LatLng(latitude, longitude);
-        Destination destination = createTempDestination(name, latLng);
-        if (isMyDestination) {
-            int color = destination.getColor();
-            if (this.destinationSymbol == null) {
 
-                this.destinationSymbol = createSymbol(latLng, color);
-            } else {
-                this.destinationSymbol.setLatLng(latLng);
-                this.destinationSymbol.setIconColor(color);
-                this.symbolManager.update(this.destinationSymbol);
-            }
-           // response SERVE onDestinationFound
-            this.myDestination.postValue(destination);
+
+        if (isDestination) {
+            if (this.destination == null)
+                this.destination = new Location("GooglePlace");
+            updateDestination(latitude, longitude);
+            printDestination();
+            goLocation(this.destination);
+
         } else {
-            //createSymbol(latLng,"Origin");
-            this.originSymbol.setLatLng(latLng);
-            this.symbolManager.update(this.originSymbol);
-            this.myOrigin.postValue(destination);
+            updateOrigin(latitude, longitude);
+            printOrigin();
+            goLocation(this.origin);
         }
 
-        findDestinations();
-        goLatLng(latLng);
+        try {
+            findDestinations();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
     }
 
-    public void goLatLng(LatLng latLng) {
+
+    private void updateDestination(Double latitude, Double longitude) {
+        this.destination.setLatitude(latitude);
+        this.destination.setLongitude(longitude);
+        this.myDestinationTemp.setDestination(this.destination);
+    }
+
+    private void updateOrigin(Double latitude, Double longitude) {
+        this.origin.setLatitude(latitude);
+        this.origin.setLongitude(longitude);
+        this.myDestinationTemp.setOrigin(this.origin);
+    }
+
+    private void printDestination() {
+
+        int color = this.myDestinationTemp.getColor();
+        this.symbolPrinter.printSymbol(
+                this.destinationSymbol,
+                new LatLng(this.destination),
+                color,
+                ICON_PLACE
+        );
+    }
+
+
+    public void goLocation(Location location) {
 
         Double zoom = this.mapboxMap.getCameraPosition().zoom;
         //this.mapboxMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
         mapboxMap.animateCamera(CameraUpdateFactory.newCameraPosition(
                 new CameraPosition.Builder()
-                        .target(latLng)
+                        .target(new LatLng(location))
                         .zoom(zoom)
                         .build()), 1000);
     }
 
-    private void findDestinations() {
-        Destination origin=myOrigin.getValue();
-        Destination destination=myDestination.getValue();
-        Destination.emitFindDestinations(origin,destination);
-        this.resultsDestination.clear();
-        this.hasNewDestination.postValue(false);
+    public void goMyOrigin() {
+        try {
+            Location location = this.myDestinationTemp.getOrigin();
+            goLocation(location);
+        } catch (NullPointerException e) {
+            messenger.onError("Origin no found");
+        }
+
     }
+
+    public void goMyDestination() {
+        try {
+            Location location = this.myDestinationTemp.getDestination();
+            goLocation(location);
+        } catch (NullPointerException e) {
+            messenger.onError("Destination no found");
+        }
+    }
+
+    private void findDestinations() throws JSONException {
+
+        if (origin != null && destination != null) {
+            //Destination.emitFindDestinations(origin,destination);
+            DestinationData.findDestinations(this.myDestinationTemp);
+            this.resultsDestination.clear();
+            this.hasNewDestination.postValue(false);
+        }
+
+    }
+
 
     private Emitter.Listener onDestinationFound = new Emitter.Listener() {
 
@@ -213,42 +284,24 @@ public class DestinationViewModel extends AndroidViewModel
         public void call(Object... args) {
 
             try {
-                List<Destination> destinations = Destination.destinationsToList(args);
+
+                List<Destination> destinations = DestinationEntity.readDestinations(args);
+
                 for (Destination destination : destinations) {
-                    destination.setDestinationListener(DestinationViewModel.this);
+                    //destination.setDestinationListener(DestinationViewModel.this);
                     addToListOfResults(destination);
                 }
             } catch (NullPointerException e) {
-
+                messenger.onError("destinations Not found ");
             }
         }
     };
 
-    private Symbol createSymbol(LatLng latLng, int iconColor) {
-        Symbol symbol;
-        symbol = symbolManager.create(new SymbolOptions()
-                .withLatLng(latLng)
-                .withIconColor(ColorUtils.colorToRgbaString(iconColor))
-                .withIconImage(ICON_PLACE)
-                .withIconSize(2.0f)
-                .withDraggable(true));
-        return symbol;
-    }
-
-    private Destination createTempDestination(String name, LatLng latLng) {
-
-        Destination destination = new Destination();
-        destination.setName(name);
-        destination.setLocalization(latLng);
-        destination.setNumUsers(0);
-        destination.setDestinationListener(this);
-        return destination;
-    }
 
     private void addToListOfResults(Destination destination) {
         Destination destinationFound;
-        destinationFound=Destination.findDestinationInListById(this.resultsDestination,destination);
-        if(destinationFound==null){
+        destinationFound = Destination.findDestinationInListById(this.resultsDestination, destination);
+        if (destinationFound == null) {
             this.resultsDestination.add(destination);
             this.hasNewDestination.postValue(true);
         }
@@ -257,73 +310,61 @@ public class DestinationViewModel extends AndroidViewModel
         //this.destinationAdapter.notifyNewDestinationInserted();
     }
 
+
+    private void createDestinationsFoundSymbol() {
+        this.destinationFoundSymbol =
+                new DestinationSymbol(
+                        this.symbolPrinter, this.destinationFound.getValue(), ICON_PLACE);
+    }
+
     /**
-     * on Click in Destination
+     * Called when a Destination layout has been clicked of list
      *
-     * @param destination
+     * @param position    in list
+     * @param destination is a Destination
      */
     @Override
-    public void onClick(Destination destination) {
-
-        LatLng latLng = destination.getLocalization();
-        int color = destination.getColor();
-        if (this.destinationFoundSymbol == null) {
-            this.destinationFoundSymbol = createSymbol(latLng, color);
-        } else {
-            this.destinationFoundSymbol.setIconColor(color);
-            this.destinationFoundSymbol.setLatLng(latLng);
-            this.symbolManager.update(this.destinationFoundSymbol);
-        }
-        this.destinationFound = destination;
+    public void onDestinationClick(int position, Destination destination) {
+        if (destinationFoundSymbol == null)
+            createDestinationsFoundSymbol();
+        this.destinationFoundSymbol.setDestination(destination);
+        this.destinationFoundSymbol.print();
+        this.destinationFound.postValue(destination);
     }
 
-    public void setDestinationFoundToMyDestination() {
-        try {
-            if (destinationFound == null) {
-                throw new NullPointerException("Destination not Selected");
-            }
-            this.myDestination.postValue(this.destinationFound);
 
-        } catch (NullPointerException e) {
-            showMessage("Please, Select a Destination");
-        }
-    }
-    public void hideDestinationFoundSymbol(){
-        if(destinationFoundSymbol!=null) {
-            this.symbolManager.delete(this.destinationFoundSymbol);
-            this.destinationFoundSymbol = null;
-        }
-    }
-
-    public void OnSubmit() {
-        Destination destinationSelected = this.myDestination.getValue();
+    public void OnSubmit() throws JSONException {
+        Destination destinationSelected = this.myDestinationTemp;// setDestinationEntity
         if (destinationSelected != null) {
             User current = User.getCurrentUser();
             String idDestination = destinationSelected.getId();
             // is new ?
             if (idDestination == null) {
                 // create a new Destination
-                Destination.emitNewDestination(destinationSelected);
+                //Destination.emitNewDestination(destinationSelected);
+                DestinationData.newDestination(destinationSelected);
 
             } else {
                 if (current.isMyDestination(idDestination)) {
-                    showMessage("You are in this Destination");
+                    messenger.OnWarning("You are in this Destination");
                 } else {
                     // this user join to destination
-                    Destination.emitJoinToDestination(destinationSelected.getId());
+                    //Destination.emitJoinToDestination(destinationSelected.getId());
+                    DestinationData.addParticipant(destinationSelected.getId(), current.getId());
                 }
             }
         }
-    }
-
-    private void showMessage(String message) {
-        Toast.makeText(getApplication().getApplicationContext(), message, Toast.LENGTH_LONG).show();
     }
 
 
     public List<Destination> getResultsDestination() {
         return resultsDestination;
     }
+
+    public MutableLiveData<Destination> getMyDestinationObservable() {
+        return this.myDestinationTemp.getObservable();
+    }
+
 
     private void searchPlace(LatLng latLng, final MutableLiveData<Destination> destinationLiveData) {
         try {
@@ -364,7 +405,8 @@ public class DestinationViewModel extends AndroidViewModel
         }
     }
 
-    private void getAddressFromLatLng(final LatLng latLng, final MutableLiveData<Destination> destinationLiveData) {
+    /*private void getAddressFromLatLng(final LatLng latLng, final MutableLiveData<Destination> destinationLiveData) {
+        final Destination destination=destinationLiveData.getValue();
         final Double latitude = latLng.getLatitude();
         final Double longitude = latLng.getLongitude();
 
@@ -377,8 +419,10 @@ public class DestinationViewModel extends AndroidViewModel
                     List<Address> addressList = geocoder.getFromLocation(latitude, longitude, 1);
                     if (addressList != null && addressList.size() > 0) {
                         Address address = addressList.get(0);
-                        String name = address.getFeatureName();// .getAddressLine(0);
-                        DestinationViewModel.this.setName(destinationLiveData,name);
+                        String name = address.getAddressLine(0);// .getAddressLine(0);
+                        String[] names = name.split(",");
+                        name = names[0] + names[1];
+                        DestinationViewModel.this.setName(destinationLiveData, name);
 
                     } else {
                         Log.e(TAG, "empty or null");
@@ -390,6 +434,30 @@ public class DestinationViewModel extends AndroidViewModel
             }
         };
         thread.start();
+    }*/
+    private String getAddressFromLocation(Location location) {
+        double latitude = location.getLatitude();
+        double longitude = location.getLongitude();
+        Geocoder geocoder = new Geocoder(getApplication().getApplicationContext(), Locale.getDefault());
+        String result = null;
+        try {
+            List<Address> addressList = geocoder.getFromLocation(latitude, longitude, 1);
+            if (addressList != null && addressList.size() > 0) {
+                Address address = addressList.get(0);
+                String name = address.getAddressLine(0);// .getAddressLine(0);
+                String[] names = name.split(",");
+                result = names[0] + names[1];
+
+            } else {
+                throw new Exception("Address not found");
+            }
+        } catch (IOException e) {
+            Timber.e("Unable connect to Geocoder");
+            this.messenger.onError("Unable connect to Geocoder");
+        } catch (Exception e) {
+            this.messenger.onError("Address not found");
+        }
+        return result;
     }
 
     ///////////////////////////////////////////////////////////
@@ -424,30 +492,52 @@ public class DestinationViewModel extends AndroidViewModel
     @Override
     public void onAnnotationDragFinished(Symbol annotation) {
         LatLng latLng = annotation.getLatLng();
-
+        double distance = 0;
         try {
             if (this.originSymbol.getId() == annotation.getId()) {
-                getAddressFromLatLng(latLng, this.myOrigin);
-                setLatLng(myOrigin,latLng);
-                findDestinations();
-                return;
+
+                distance = latLng.distanceTo(this.myDestinationTemp.getOriginLatLng());
+                this.myDestinationTemp.setOrigin(latLng);
+                setName(true);
+
             }
             if (this.destinationSymbol.getId() == annotation.getId()) {
-                setLatLng(myDestination,latLng);
-                getAddressFromLatLng(latLng, this.myDestination);
+                distance = latLng.distanceTo(this.myDestinationTemp.getDestinationLatLng());
+                this.myDestinationTemp.setDestination(latLng);
+                setName(false);
+
             }
+            if (distance >= 100.0) {
+
+                findDestinations();
+            }
+
         } catch (NullPointerException e) {
 
+        } catch (JSONException e) {
+            e.printStackTrace();
         }
     }
-    private void setLatLng(MutableLiveData<Destination> destinationMlv,LatLng latLng ){
-        Destination destination = destinationMlv.getValue();
-        destination.setLocalization(latLng);
-        destinationMlv.postValue(destination);
+
+    private void setName(boolean toOrigin) {
+        if (toOrigin) {
+            String address = getAddressFromLocation(myDestinationTemp.getOrigin());
+            myDestinationTemp.setOriginAddress(address);
+        } else {
+            String address = getAddressFromLocation(myDestinationTemp.getDestination());
+            myDestinationTemp.setDestinationAddress(address);
+        }
     }
-    private void setName(MutableLiveData<Destination> destinationMlv,String name  ){
+
+
+    private void setName(MutableLiveData<Destination> destinationMlv, String name) {
         Destination destination = destinationMlv.getValue();
         destination.setName(name);
         destinationMlv.postValue(destination);
     }
+
+    public void setMessenger(IMessenger messenger) {
+        this.messenger = messenger;
+    }
+
 }

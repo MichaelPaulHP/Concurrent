@@ -5,8 +5,6 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Application;
 import android.arch.lifecycle.AndroidViewModel;
-import android.arch.lifecycle.MutableLiveData;
-import android.arch.lifecycle.ViewModel;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
@@ -14,10 +12,8 @@ import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.widget.Toast;
 
 import com.example.mrrobot.concurrent.Config.MapBox;
-import com.example.mrrobot.concurrent.MainActivity;
 import com.example.mrrobot.concurrent.R;
 import com.example.mrrobot.concurrent.Services.SocketIO;
 import com.example.mrrobot.concurrent.models.Destination;
@@ -43,15 +39,11 @@ import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 import com.mapbox.mapboxsdk.location.LocationComponent;
 import com.mapbox.mapboxsdk.maps.Style;
-import com.mapbox.mapboxsdk.style.layers.Layer;
-import com.mapbox.mapboxsdk.style.layers.PropertyFactory;
 import com.mapbox.mapboxsdk.style.layers.SymbolLayer;
 import com.mapbox.mapboxsdk.style.sources.GeoJsonSource;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.util.List;
 
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
@@ -67,7 +59,7 @@ import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconTextFit;
 public class LocationViewModel extends AndroidViewModel implements
         OnMapReadyCallback,
         LocationEngineCallback<LocationEngineResult> ,
-        Destination.IDestinationListener{
+        Destination.IListener {
 
     public MapView mapView;
     private MapboxMap mapboxMap;
@@ -157,9 +149,9 @@ public class LocationViewModel extends AndroidViewModel implements
             style.addImage("marker_15",bitmap);
 
             GeoJsonSource geoJsonSource = new GeoJsonSource(destination.getId());
-            double latitude= destination.getLocalization().getLatitude();
-            double longitude = destination.getLocalization().getLongitude();
-            geoJsonSource.setGeoJson(Feature.fromGeometry(Point.fromLngLat(longitude,latitude)));
+            //double latitude= destination.getLocalization().getLatitude();
+            //double longitude = destination.getLocalization().getLongitude();
+            //geoJsonSource.setGeoJson(Feature.fromGeometry(Point.fromLngLat(longitude,latitude)));
 
             style.addSource(geoJsonSource);
 
@@ -175,7 +167,7 @@ public class LocationViewModel extends AndroidViewModel implements
     }
     public  void goToDestination(Destination destination) {
 
-        LatLng latLng = destination.getLocalization();
+        LatLng latLng = destination.getDestinationLatLng();
         this.mapboxMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
     }
 
@@ -267,6 +259,7 @@ public class LocationViewModel extends AndroidViewModel implements
         // Localization logic here
 
         Location lastLocation = result.getLastLocation();
+
         User.getCurrentUser().myLocation.setValue(lastLocation);
         Localization localization = new Localization("",lastLocation.getLatitude(),lastLocation.getLongitude());
         SocketIO.emitMyLocalizationChange(localization);

@@ -70,7 +70,7 @@ public class ChatData {
 
 
         chatSaved.setKey(idChat);
-        //chatSaved.addParticipants(user); // user is participant
+        //chatSaved.addParticipant(user); // user is participant
         ChatData chatData = new ChatData(chatSaved);
         // save chat
         return dbReferenceChats.child(idChat).setValue(chatData);
@@ -102,7 +102,7 @@ public class ChatData {
 //        chatSaved.setKey(idChat);
 //        chatSaved.setCreatedBy(user.getIdGoogle());
 //        chatSaved.setCreatedAt(Chat.getNowDate());
-//        chatSaved.addParticipants(user); // user is participant
+//        chatSaved.addParticipant(user); // user is participant
 //        ChatData chatData = new ChatData(chatSaved);
 //        // save chat
 //        dbReferenceChats.child(idChat).setValue(chatData)
@@ -118,7 +118,7 @@ public class ChatData {
 //                            @Override
 //                            public void onSuccess(Void aVoid) {
 //                                Log.i("CHAT","onSuccess add chat to user");
-//                                user.listeners.onJoinToChat(chatSaved);
+//                                user.listeners.onNewChat(chatSaved);
 //                                //chatSaved.chatListener.(chatSaved);
 //                            }
 //                        }).addOnFailureListener(new OnFailureListener() {
@@ -134,7 +134,7 @@ public class ChatData {
 //                            @Override
 //                            public void onSuccess(Void aVoid) {
 //                                Log.i("CHAT","onSuccess add chat to user");
-//                                user.listeners.onJoinToChat(chatSaved);
+//                                user.listeners.onNewChat(chatSaved);
 //                            }
 //                        }).addOnFailureListener(new OnFailureListener() {
 //                            @Override

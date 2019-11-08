@@ -175,7 +175,7 @@
                 android:layout_height="wrap_content"
                 android:background="@color/colorPrimary"
                 android:text="No Encontramos Resultados" />
-            <!--Recycler View: Destinations -->
+            <!--Recycler View: DestinationEntity -->
             <android.support.v7.widget.RecyclerView
 
                 android:id="@+id/rvDestinationsFound"

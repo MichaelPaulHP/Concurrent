@@ -2,34 +2,13 @@ package com.example.mrrobot.concurrent.ui.home;
 
 import android.app.Application;
 import android.arch.lifecycle.AndroidViewModel;
-import android.arch.lifecycle.ViewModel;
-import android.util.Log;
-import android.widget.Toast;
 
-import com.example.mrrobot.concurrent.Services.SocketIO;
-import com.example.mrrobot.concurrent.Utils.Utils;
 import com.example.mrrobot.concurrent.models.Destination;
-import com.example.mrrobot.concurrent.models.Localization;
 import com.example.mrrobot.concurrent.models.User;
-import com.example.mrrobot.concurrent.ui.destination.DestinationFragment;
-import com.example.mrrobot.concurrent.ui.location.LocationViewModel;
-import com.google.android.libraries.places.api.model.Place;
-import com.mapbox.mapboxsdk.geometry.LatLng;
-import com.mapbox.mapboxsdk.maps.MapboxMap;
-import com.mapbox.mapboxsdk.maps.Style;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import io.socket.client.Socket;
-import io.socket.emitter.Emitter;
 
 public class HomeViewModel extends AndroidViewModel
         implements
-        Destination.IDestinationListener {
+        Destination.IListener {
 
 
 

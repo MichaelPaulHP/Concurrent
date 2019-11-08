@@ -2,34 +2,21 @@ package com.example.mrrobot.concurrent.ui.chat;
 
 import android.app.Application;
 import android.arch.lifecycle.AndroidViewModel;
-import android.arch.lifecycle.ViewModel;
-import android.databinding.ObservableField;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-import com.example.mrrobot.concurrent.Firebase.DB.ChatData;
 import com.example.mrrobot.concurrent.models.Chat;
 import com.example.mrrobot.concurrent.models.Message;
 import com.example.mrrobot.concurrent.models.MessagePrototypeFactory;
 import com.example.mrrobot.concurrent.models.User;
 import com.example.mrrobot.concurrent.ui.home.DestinationAdapter;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.firebase.database.ChildEventListener;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.squareup.picasso.Picasso;
 import com.stfalcon.chatkit.commons.ImageLoader;
-import com.stfalcon.chatkit.commons.models.IUser;
 import com.stfalcon.chatkit.messages.MessageInput;
 import com.stfalcon.chatkit.messages.MessagesListAdapter;
 
-import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.List;
 import java.util.Random;
 
 public class ChatViewModel extends AndroidViewModel implements
@@ -37,7 +24,6 @@ public class ChatViewModel extends AndroidViewModel implements
         MessageInput.AttachmentsListener,
         MessageInput.TypingListener,
         ChatsAdapter.ClickListener,
-        Chat.IChatListener,
         User.IUserListeners {
 
     // prueba
@@ -46,21 +32,22 @@ public class ChatViewModel extends AndroidViewModel implements
     //Chat chatTest = new Chat("testChat","idChatTest1","idMessagesTest","idUser");
 
 
-    ObservableField<Integer> count = new ObservableField<>(0);
     private MessagesListAdapter<Message> messagesAdapter;
     private ChatsAdapter chatsAdapter;
+
     private DestinationAdapter destinationAdapter;
     private ImageLoader imageLoader;
     private int indexChat=0;
+
     public ChatViewModel(Application application) {
         super(application);
         this.user=User.getCurrentUser();
         // listener user
         user.userListeners=this;
-        user.chatListener=this;
         initMessagesAdapter();
         initChatsAdapter();
         this.user.requestMyChats();
+
         // actualizar mis datos con los de DB
     }
 
@@ -73,7 +60,7 @@ public class ChatViewModel extends AndroidViewModel implements
 
     private void initMessagesAdapter() {
         initImageLoader();
-        this.messagesAdapter = new MessagesListAdapter<>("0", imageLoader);
+        this.messagesAdapter = new MessagesListAdapter<>(this.user.getIdGoogle(), imageLoader);
 
 //        messagesAdapter.enableSelectionMode(this);
 //        messagesAdapter.setLoadMoreListener(this);
@@ -88,14 +75,6 @@ public class ChatViewModel extends AndroidViewModel implements
 //                });
     }
 
-    private void createChatAndJoin() {
-        Random random = new Random();
-        String name="MY_CHAT"+random.nextInt();
-        final Chat chat = new Chat(name,this.user.getIdGoogle());
-        chat.chatListener = this;
-        this.user.saveChatAndJoint(chat);
-    }
-
     /**
      * get the chat current
      *
@@ -106,34 +85,6 @@ public class ChatViewModel extends AndroidViewModel implements
     }
 
 
-    private void showMessages(Chat chat) {
-        this.messagesAdapter.addToEnd(chat.getMessages(), true);
-    }
-
-
-    private Message testCreateMessage() {
-        Message message = MessagePrototypeFactory.getPrototype("meMessage");
-        Calendar calendar = Calendar.getInstance();
-        message.setText("textcreateMessage");
-        return message;
-    }
-
-
-    public void testCreateChatAndJoin() {
-        this.createChatAndJoin();
-    }
-
-    // call on click
-    /*public void testSaveMessage() {
-        // TEST show messages
-        Message messageOfTestUser = testCreateMessage();
-        Chat.saveMessage(getCurrentChat(), messageOfTestUser);
-    }*/
-
-    public void testCreateUser(){
-        this.user.save();
-        //Chat.saveUser(getCurrentChat().getIdParticipants(),userTest);
-    }
 
 
     /////////////////////////////////////////////////////////////
@@ -187,10 +138,11 @@ public class ChatViewModel extends AndroidViewModel implements
     ////////// END MESSAGE LISTENERS
     ////////////////////////
 
+
+
     /////////////////////////////////////////////////////////////
     ////////// CHAT ADAPTER LISTENERS
     //////////////////////////////////////////////////////////
-
 
     /**
      * event on item's click
@@ -224,6 +176,7 @@ public class ChatViewModel extends AndroidViewModel implements
     //////////////////////// CHILD LISTENERS
     ///////////////////
 
+
     /////////////////////////////////////////////////////////////
     ////////// CHAT AND USER LISTENERS
     ///////////////////////////////////
@@ -241,15 +194,25 @@ public class ChatViewModel extends AndroidViewModel implements
         this.messagesAdapter.addToStart(x, true);
     }
 
+    /**
+     * called when a new user join to chat
+     *
+     * @param chat
+     * @param x
+     */
+    @Override
+    public void onNewParticipant(Chat chat, User x) {
+
+    }
 
     /**
      * when this user join to chat x
      *
      */
     @Override
-    public void onJoinToChat() {
-        //this.chatsAdapter.notifyNewChatInserted();
-        this.destinationAdapter.notifyNewDestinationInserted();
+    public void onNewChat() {
+        this.chatsAdapter.notifyNewChatInserted();
+        //this.destinationAdapter.notifyNewDestinationInserted();
     }
 
 
@@ -266,9 +229,7 @@ public class ChatViewModel extends AndroidViewModel implements
         return chatsAdapter;
     }
 
-    public DestinationAdapter getDestinationAdapter() {
-        return destinationAdapter;
-    }
+
 
     private void initImageLoader() {
         this.imageLoader = new ImageLoader() {

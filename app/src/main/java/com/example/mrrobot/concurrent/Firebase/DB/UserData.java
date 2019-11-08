@@ -126,7 +126,7 @@ public class UserData {
 //                    if(user1.myChats!=null && user1.numChats!=null ){
 //                        user.myChats.addAll(user1.myChats);
 //                        user.numChats=user1.numChats;
-//                        user.listeners.onJoinToChat(null);
+//                        user.listeners.onNewChat(null);
 //                    }
 //
 //                }

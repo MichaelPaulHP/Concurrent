@@ -1,11 +1,9 @@
 package com.example.mrrobot.concurrent.ui.destination;
 
-import android.arch.lifecycle.MutableLiveData;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
-import android.databinding.ViewStubProxy;
 import android.support.annotation.Nullable;
 import android.support.design.widget.BottomSheetBehavior;
 import android.support.v7.app.AppCompatActivity;
@@ -15,11 +13,11 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.DragEvent;
 import android.view.View;
-import android.view.ViewStub;
+import android.widget.Toast;
 
 import com.example.mrrobot.concurrent.R;
+import com.example.mrrobot.concurrent.Utils.IMessenger;
 import com.example.mrrobot.concurrent.databinding.ActivityDestinationBinding;
-import com.example.mrrobot.concurrent.databinding.DestinationBinding;
 import com.example.mrrobot.concurrent.models.Destination;
 import com.example.mrrobot.concurrent.ui.home.DestinationAdapter;
 import com.google.android.gms.common.api.Status;
@@ -27,13 +25,16 @@ import com.google.android.libraries.places.api.model.Place;
 import com.google.android.libraries.places.widget.Autocomplete;
 import com.google.android.libraries.places.widget.AutocompleteActivity;
 import com.google.android.libraries.places.widget.model.AutocompleteActivityMode;
-import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.mapbox.mapboxsdk.maps.MapView;
+
+import org.json.JSONException;
 
 import java.util.Arrays;
 import java.util.List;
 
-public class DestinationActivity extends AppCompatActivity implements View.OnClickListener, View.OnDragListener {
+import timber.log.Timber;
+
+public class DestinationActivity extends AppCompatActivity implements View.OnClickListener, View.OnDragListener, IMessenger {
 
 
     String TAG = "DestinationActivity";
@@ -64,6 +65,8 @@ public class DestinationActivity extends AppCompatActivity implements View.OnCli
         binding.setDestinationVM(destinationViewModel);
         // MAP VIEW
         this.mapView = findViewById(R.id.mapViewDestination);
+
+        this.destinationViewModel.setMessenger(this);
         this.destinationViewModel.initMapView(mapView, savedInstanceState);
 
         initUI();
@@ -83,46 +86,67 @@ public class DestinationActivity extends AppCompatActivity implements View.OnCli
         this.recyclerViewDestinationsFound = this.binding.rvDestinationsFound;
         initRecyclerViewOfDestinations();
 
-        subscribeHasNewDestination();
-        subscribeDestinationSelected();
-        subscribeMyOrigin();
+        subscribeDestinationFound();
+        subscribeMyDestinationTemp();
+        subscribeHasResults();
 
     }
-    private void initBottomSheet(){
+
+    private void initBottomSheet() {
         sheetBehavior = BottomSheetBehavior.from(this.binding.bottomSheet);
         this.binding.btnBottomSheet.setOnClickListener(this);
         this.binding.btnBottomSheet.setOnDragListener(this);
     }
+
     public void toggleBottomSheet() {
         if (sheetBehavior.getState() != BottomSheetBehavior.STATE_EXPANDED) {
             sheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
 
         } else {
             sheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
-            this.destinationViewModel.hideDestinationFoundSymbol();
             //btnBottomSheet.setText("Expand sheet");
         }
     }
 
 
-    private void subscribeHasNewDestination() {
-        final Observer<Boolean> booleanObserver = new Observer<Boolean>() {
+    private void subscribeDestinationFound() {
+        final Observer<Destination> observer = new Observer<Destination>() {
             @Override
-            public void onChanged(@Nullable final Boolean aLong) {
+            public void onChanged(@Nullable final Destination aDestination) {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        DestinationActivity.this.destinationAdapter.notifyNewDestinationInserted();
+                        //DestinationActivity.this.destinationAdapter.notifyNewDestinationInserted();
+                        toggleBottomSheet();
+                        showLayoutToJoin();
+                        showDestinationToJoin(aDestination, "JOIN");
+                    }
+                });
+
+            }
+        };
+        this.destinationViewModel.destinationFound.observe(this, observer);
+    }
+    private void subscribeHasResults() {
+        final Observer<Boolean> observer = new Observer<Boolean>() {
+            @Override
+            public void onChanged(@Nullable final Boolean hasResults) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+
+                        if(hasResults){
+                            DestinationActivity.this.destinationAdapter.notifyNewDestinationInserted();
+                            // show animation
+                        }
 
                     }
                 });
 
             }
         };
-
-        this.destinationViewModel.hasNewDestination.observe(this, booleanObserver);
+        this.destinationViewModel.hasNewDestination.observe(this, observer);
     }
-
     /*private void intViewStub(){
 
         ViewStubProxy viewStub= DestinationActivity.this.binding.viewStubDestinationSelected;
@@ -136,16 +160,35 @@ public class DestinationActivity extends AppCompatActivity implements View.OnCli
 
         });
     }*/
-    private void subscribeDestinationSelected() {
-        final Observer<Destination> booleanObserver = new Observer<Destination>() {
+
+    private void subscribeMyDestinationTemp() {
+        final Observer<Destination> observer = new Observer<Destination>() {
             @Override
             public void onChanged(@Nullable final Destination aDestination) {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        DestinationActivity.this.binding.btnMyDestination.setText(aDestination.getName());
-                        showLayoutToJoin();
-                        DestinationActivity.this.binding.setDestinationSelected(aDestination);
+
+                        /*if(hasOriginAndDestination(aDestination)){
+
+                        }*/
+                        if (hasDestination(aDestination)) {
+                            // set text
+                            String destinationAddress=aDestination.getName().split("-")[1];
+                            DestinationActivity.this.binding.btnMyDestination.setText(destinationAddress);
+
+                            if (hasOrigin(aDestination)) {
+                                String originAddress=aDestination.getName().split("-")[0];
+                                DestinationActivity.this.binding.btnMyOrigin.setText(originAddress);
+                                showLayoutToJoin();
+                                showDestinationToJoin(aDestination, "Create");
+                            }
+                        }
+                        /*if(hasOrigin(aDestination)){
+
+                        }*/
+
+
                         //DestinationActivity.this.binding.viewStubDestinationSelected.getViewStub().inflate();
 
                         //viewStub.getViewStub().inflate();
@@ -154,25 +197,30 @@ public class DestinationActivity extends AppCompatActivity implements View.OnCli
 
             }
         };
-        destinationViewModel.myDestination.observe(this,booleanObserver);
-        //Destination.destinationSelected.observe(this, booleanObserver);
-    }
-    private void subscribeMyOrigin() {
-        final Observer<Destination> booleanObserver = new Observer<Destination>() {
-            @Override
-            public void onChanged(@Nullable final Destination aDestination) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        DestinationActivity.this.binding.btnMyOrigin.setText(aDestination.getName());
-                    }
-                });
+        destinationViewModel.getMyDestinationObservable().observe(this, observer);
 
-            }
-        };
-        destinationViewModel.myOrigin.observe(this,booleanObserver);
         //Destination.destinationSelected.observe(this, booleanObserver);
     }
+
+    private void showDestinationToJoin(Destination destination, String text) {
+        this.binding.setDestinationSelected(destination);
+        this.binding.btnSubmitDestination.setText(text);
+    }
+
+    private boolean hasOrigin(Destination destination) {
+        return destination.getOrigin() != null;
+    }
+
+    private boolean hasDestination(Destination destination) {
+        return destination.getDestination() != null;
+    }
+
+    private boolean hasOriginAndDestination(Destination destination) {
+        boolean origin = destination.getOrigin() != null;
+        boolean des = destination.getDestination() != null;
+        return origin && des;
+    }
+
 
     private void initRecyclerViewOfDestinations() {
 
@@ -183,23 +231,23 @@ public class DestinationActivity extends AppCompatActivity implements View.OnCli
         this.destinationAdapter = new DestinationAdapter();
         this.recyclerViewDestinationsFound.setAdapter(this.destinationAdapter);
         this.destinationAdapter.setDestinations(this.destinationViewModel.getResultsDestination());
-
+        this.destinationAdapter.setEventListener(this.destinationViewModel);
     }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == AUTOCOMPLETE_REQUEST_CODE || (requestCode==AUTOCOMPLETE_REQUEST_CODE+1) ) {
+        if (requestCode == AUTOCOMPLETE_REQUEST_CODE || (requestCode == AUTOCOMPLETE_REQUEST_CODE + 1)) {
             if (resultCode == RESULT_OK) {
 
                 Place place = Autocomplete.getPlaceFromIntent(data);
+                Timber.d("ee");
                 Log.i(TAG, "Place: " + place.getName() + ", " + place.getId());
 
-                Boolean isMyDestination=requestCode==AUTOCOMPLETE_REQUEST_CODE+1;
-                this.destinationViewModel.onPlaceSelected(place,isMyDestination);
+                Boolean isDestination = requestCode == AUTOCOMPLETE_REQUEST_CODE + 1;
+                this.destinationViewModel.onPlaceSelected(place, isDestination);
 
                 //DestinationFragment.this.destinationListener.onPlaceSelected(place);
-
 
             } else if (resultCode == AutocompleteActivity.RESULT_ERROR) {
                 // TODO: Handle the error.
@@ -224,20 +272,19 @@ public class DestinationActivity extends AppCompatActivity implements View.OnCli
     }
 
     private void onSubmit() {
-        this.destinationViewModel.OnSubmit();
+        try {
+            this.destinationViewModel.OnSubmit();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
         // close activity
         // Todo: go back (main activity)
     }
-    private void goTo(MutableLiveData<Destination> destinationMutableLiveData){
-        Destination destination= destinationMutableLiveData.getValue();
-        if(destination!=null) {
-            LatLng latLng = destination.getLocalization();
-            this.destinationViewModel.goLatLng(latLng);
-        }
-    }
-    private void showLayoutToJoin(){
+
+    private void showLayoutToJoin() {
         this.binding.layoutToDestination.setVisibility(View.VISIBLE);
     }
+
     @Override
     public void onClick(View view) {
         int id = view.getId();
@@ -246,13 +293,13 @@ public class DestinationActivity extends AppCompatActivity implements View.OnCli
                 showSearchPlace(AUTOCOMPLETE_REQUEST_CODE);
                 break;
             case R.id.btnFindMyDestination:
-                showSearchPlace(AUTOCOMPLETE_REQUEST_CODE+1);
+                showSearchPlace(AUTOCOMPLETE_REQUEST_CODE + 1);
                 break;
             case R.id.btnMyOrigin:
-                goTo(this.destinationViewModel.myOrigin);
+                destinationViewModel.goMyOrigin();
                 break;
             case R.id.btnMyDestination:
-                goTo(this.destinationViewModel.myDestination);
+                destinationViewModel.goMyDestination();
                 break;
             case R.id.btnSubmitDestination:
                 onSubmit();
@@ -261,19 +308,40 @@ public class DestinationActivity extends AppCompatActivity implements View.OnCli
                 toggleBottomSheet();
                 break;
             case R.id.btnReadyForJoined:
-                this.destinationViewModel.setDestinationFoundToMyDestination();
-                toggleBottomSheet();
+                //this.destinationViewModel.setDestinationFoundToMyDestination();
+                //toggleBottomSheet();
                 break;
         }
     }
+
+    @Override
+    public void onError(String message) {
+        showMessage(message);
+    }
+
+    @Override
+    public void OnWarning(String message) {
+        showMessage(message);
+    }
+
+    @Override
+    public void onSuccess(String message) {
+        showMessage(message);
+    }
+
+    private void showMessage(String message) {
+        Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
+    }
+
     @Override
     public boolean onDrag(View v, DragEvent event) {
-        int id= v.getId();
-        if(id==R.id.btnBottomSheet) {
+        int id = v.getId();
+        if (id == R.id.btnBottomSheet) {
             toggleBottomSheet();
         }
         return false;
     }
+
     @Override
     public void onResume() {
         super.onResume();
@@ -315,7 +383,6 @@ public class DestinationActivity extends AppCompatActivity implements View.OnCli
         super.onSaveInstanceState(outState);
         mapView.onSaveInstanceState(outState);
     }
-
 
 
 }

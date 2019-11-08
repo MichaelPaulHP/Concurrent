@@ -101,7 +101,7 @@
                 android:textColor="?attr/color_secondary"
 
                 />
-            <!--Recycler View: Destinations -->
+            <!--Recycler View: DestinationEntity -->
             <android.support.v7.widget.RecyclerView
                 android:id="@+id/recyclerViewDestinationsFound"
                 android:layout_width="match_parent"

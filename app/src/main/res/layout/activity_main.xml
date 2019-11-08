@@ -98,7 +98,7 @@
         android:layout_alignParentBottom="true"
         android:background="?attr/color_primary"
         android:orientation="vertical">
-        <!--Recycler View: Destinations -->
+        <!--Recycler View: DestinationEntity -->
         <android.support.v7.widget.RecyclerView
             android:id="@+id/recyclerViewListDestinations"
             android:layout_width="match_parent"
