@@ -33,7 +33,8 @@ public class DestinationEntity {
         this.destinationLatitude = destination.getDestination().getLatitude();
         this.destinationLongitude = destination.getDestination().getLongitude();
         this.userId = User.getCurrentUser().getId();
-        chatId=destination.getChat().getKey();
+        if(destination.getChat()!=null)
+            chatId=destination.getChat().getKey();
     }
 
     public static List<Destination> readDestinations(Object... args) {

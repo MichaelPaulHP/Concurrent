@@ -172,14 +172,14 @@ public class DestinationActivity extends AppCompatActivity implements View.OnCli
                         /*if(hasOriginAndDestination(aDestination)){
 
                         }*/
-                        if (hasDestination(aDestination)) {
+                        if (hasDestination(aDestination) && aDestination.getName()!=null) {
                             // set text
-                            String destinationAddress=aDestination.getName().split("-")[1];
-                            DestinationActivity.this.binding.btnMyDestination.setText(destinationAddress);
+
+                            DestinationActivity.this.binding.btnMyDestination.setText(aDestination.getDestinationAddress());
 
                             if (hasOrigin(aDestination)) {
-                                String originAddress=aDestination.getName().split("-")[0];
-                                DestinationActivity.this.binding.btnMyOrigin.setText(originAddress);
+
+                                DestinationActivity.this.binding.btnMyOrigin.setText(aDestination.getOriginAddress());
                                 showLayoutToJoin();
                                 showDestinationToJoin(aDestination, "Create");
                             }

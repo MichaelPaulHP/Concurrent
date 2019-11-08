@@ -43,6 +43,7 @@ public class SymbolPrinter {
         }
        return symbol;
     }
+
     public void deleleSymbol(Symbol symbol){
         this.symbolManager.delete(symbol);
     }

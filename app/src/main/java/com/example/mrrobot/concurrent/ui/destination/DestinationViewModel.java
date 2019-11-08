@@ -72,6 +72,8 @@ public class DestinationViewModel extends AndroidViewModel
     private SymbolPrinter symbolPrinter;
 
     private Destination myDestinationTemp;
+    private DestinationSymbol myDestinationTempSymbol;
+
     private Location origin;
     private Location destination;
 
@@ -124,8 +126,9 @@ public class DestinationViewModel extends AndroidViewModel
                 configSymbolManager(style);
                 addIcon(style);
 
-                printAndGoMyOrigin();
 
+                initMyDestinationSymbol();
+                printAndGoMyOrigin();
 
             }
         });
@@ -134,7 +137,6 @@ public class DestinationViewModel extends AndroidViewModel
     private void configSymbolManager(Style style) {
         this.symbolPrinter = new SymbolPrinter(mapView, mapboxMap);
         this.symbolPrinter.addDragListener(this);
-
     }
 
     private void addIcon(Style style) {
@@ -148,6 +150,7 @@ public class DestinationViewModel extends AndroidViewModel
     }
 
     private void createMyDestinationTemp() {
+
         this.origin = getMyLocation();
         if (this.origin != null) {
 
@@ -156,11 +159,16 @@ public class DestinationViewModel extends AndroidViewModel
             this.myDestinationTemp.setOrigin(this.origin);
         }
     }
-
+    private void initMyDestinationSymbol(){
+        this.myDestinationTempSymbol = new DestinationSymbol(this.symbolPrinter,this.myDestinationTemp);
+    }
     private void printAndGoMyOrigin() {
 
-        printOrigin();
+
+        printMyDestination();
+        //printOrigin();
         goLocation(this.origin);
+        setName(true);
     }
 
     private Location getMyLocation() {
@@ -172,14 +180,9 @@ public class DestinationViewModel extends AndroidViewModel
         return location;
     }
 
-
-    private void printOrigin() {
-        int color = Color.BLACK;
-        this.originSymbol= this.symbolPrinter.printSymbol(
-                this.originSymbol,
-                new LatLng(this.origin),
-                color,
-                ICON_PLACE);
+    private void printMyDestination(){
+        this.myDestinationTempSymbol.setDestination(this.myDestinationTemp);
+        this.myDestinationTempSymbol.print();
     }
 
 
@@ -194,14 +197,18 @@ public class DestinationViewModel extends AndroidViewModel
             if (this.destination == null)
                 this.destination = new Location("GooglePlace");
             updateDestination(latitude, longitude);
-            printDestination();
+            //printDestination();
             goLocation(this.destination);
+            setName(false);
 
         } else {
             updateOrigin(latitude, longitude);
-            printOrigin();
+            //printOrigin();
             goLocation(this.origin);
+            setName(true);
         }
+
+        printMyDestination();
 
         try {
             findDestinations();
@@ -224,16 +231,7 @@ public class DestinationViewModel extends AndroidViewModel
         this.myDestinationTemp.setOrigin(this.origin);
     }
 
-    private void printDestination() {
 
-        int color = this.myDestinationTemp.getColor();
-        this.symbolPrinter.printSymbol(
-                this.destinationSymbol,
-                new LatLng(this.destination),
-                color,
-                ICON_PLACE
-        );
-    }
 
 
     public void goLocation(Location location) {
@@ -314,7 +312,7 @@ public class DestinationViewModel extends AndroidViewModel
     private void createDestinationsFoundSymbol() {
         this.destinationFoundSymbol =
                 new DestinationSymbol(
-                        this.symbolPrinter, this.destinationFound.getValue(), ICON_PLACE);
+                        this.symbolPrinter, this.destinationFound.getValue());
     }
 
     /**
@@ -494,19 +492,20 @@ public class DestinationViewModel extends AndroidViewModel
         LatLng latLng = annotation.getLatLng();
         double distance = 0;
         try {
-            if (this.originSymbol.getId() == annotation.getId()) {
+
+            if (myDestinationTempSymbol.getOriginId() == annotation.getId()) {
 
                 distance = latLng.distanceTo(this.myDestinationTemp.getOriginLatLng());
-                this.myDestinationTemp.setOrigin(latLng);
+                updateOrigin(latLng.getLatitude(),latLng.getLongitude());
                 setName(true);
 
             }
-            if (this.destinationSymbol.getId() == annotation.getId()) {
+            if (myDestinationTempSymbol.getDestinationId() == annotation.getId()) {
                 distance = latLng.distanceTo(this.myDestinationTemp.getDestinationLatLng());
-                this.myDestinationTemp.setDestination(latLng);
+                updateDestination(latLng.getLatitude(),latLng.getLongitude());
                 setName(false);
-
             }
+
             if (distance >= 100.0) {
 
                 findDestinations();
