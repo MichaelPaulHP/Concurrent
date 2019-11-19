@@ -17,8 +17,10 @@ import android.widget.ProgressBar;
 import android.widget.RadioButton;
 import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.mrrobot.concurrent.Firebase.Auth;
+import com.example.mrrobot.concurrent.Services.ConcurrentService.ConcurrentApiClient;
 import com.example.mrrobot.concurrent.Services.SocketIO;
 
 import com.example.mrrobot.concurrent.models.User;
@@ -29,10 +31,17 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import io.socket.client.Socket;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import timber.log.Timber;
 
 public class loginActivity extends AppCompatActivity
-        implements View.OnClickListener, ISaveUserTask {
+        implements View.OnClickListener, ISaveUserTask,CompoundButton.OnCheckedChangeListener {
 
     private static final String TAG = "GoogleActivity";
     private static final int RC_SIGN_IN = 9001;
@@ -42,10 +51,7 @@ public class loginActivity extends AppCompatActivity
     // [END declare_auth]
 
 
-    private TextView mStatusTextView;
-    private TextView mDetailTextView;
-    private TextInputEditText editTextEmailAddress;
-    private TextInputEditText editTextPassword;
+
     TextInputLayout emailLayout;
     TextInputLayout passLayout;
     private Switch radioButton;
@@ -59,23 +65,11 @@ public class loginActivity extends AppCompatActivity
 
         emailLayout =(TextInputLayout) findViewById(R.id.email_input_layout);
         passLayout =(TextInputLayout) findViewById(R.id.pass_input_layout);
-        this.editTextEmailAddress = (TextInputEditText)findViewById(R.id.inputEmail);
-        this.editTextPassword = (TextInputEditText)findViewById(R.id.inputPass);
+
         this.radioButton =(Switch) findViewById(R.id.swIslogIn);
         this.progressBar= (ProgressBar) findViewById(R.id.progressBarLogin);
-        this.radioButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                if(b){
-                    loginActivity.this.btnSignIn.setText("Crear Cuenta");
-                    loginActivity.this.radioButton.setText("Iniciar sesion");
-                }
-                else{
-                    loginActivity.this.btnSignIn.setText("Iniciar sesion");
-                    loginActivity.this.radioButton.setText("¿No tienes Una Cuenta? CREAR");
-                }
-            }
-        });
+
+        this.radioButton.setOnCheckedChangeListener(this);
         btnSignIn=(Button) findViewById(R.id.sign_in);
         this.btnSignIn.setOnClickListener(this);
 
@@ -87,6 +81,24 @@ public class loginActivity extends AppCompatActivity
         mAuth = FirebaseAuth.getInstance();
 
         // [END initialize_auth]
+    }
+
+    /**
+     * Called when the checked state of a compound button has changed.
+     *
+     * @param buttonView The compound button view whose state has changed.
+     * @param isChecked  The new checked state of buttonView.
+     */
+    @Override
+    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+        if(isChecked){
+            loginActivity.this.btnSignIn.setText("Crear Cuenta");
+            loginActivity.this.radioButton.setText("Iniciar sesion");
+        }
+        else{
+            loginActivity.this.btnSignIn.setText("Iniciar sesion");
+            loginActivity.this.radioButton.setText("¿No tienes Una Cuenta? CREAR");
+        }
     }
 
     @Override
@@ -113,7 +125,9 @@ public class loginActivity extends AppCompatActivity
         }
 
     }
-
+    private void showMessage(String message){
+        Toast.makeText(getApplicationContext(),message,Toast.LENGTH_LONG).show();
+    }
     private boolean isFormCorrect(String email,String password){
 
         if( email.isEmpty() && password.isEmpty()){
@@ -127,6 +141,7 @@ public class loginActivity extends AppCompatActivity
         }
         //return !(email==""  && pass=="");
     }
+
     private void signInEmailPass(String email,String password) {
 
         // [START sign_in_with_email]
@@ -135,14 +150,10 @@ public class loginActivity extends AppCompatActivity
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
-                            // Sign in success, update UI with the signed-in user's information
-                            Log.d(TAG, "signInWithEmail:success");
+
                             FirebaseUser user = mAuth.getCurrentUser();
                             updateUI(user);
                         } else {
-                            // If sign in fails, display a message to the user.
-                            Log.w(TAG, "signInWithEmail:failure", task.getException());
-
                             showProgress(false);
                             loginActivity.this.emailLayout.setError("Email Incorrecto");
                             loginActivity.this.emailLayout.setError("Contrasela Incorecto");
@@ -153,6 +164,8 @@ public class loginActivity extends AppCompatActivity
         // [END sign_in_with_email]
     }
     // [END signin]
+
+
     private void createWithEmailAndPass(String email,String password){
 
         mAuth.createUserWithEmailAndPassword(email, password)
@@ -160,8 +173,7 @@ public class loginActivity extends AppCompatActivity
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
-                            // Sign in success, update UI with the signed-in user's information
-                            Log.d(TAG, "createUserWithEmail:success");
+
                             FirebaseUser user = mAuth.getCurrentUser();
 
                             SaveUserTask saveUserTask = new SaveUserTask(loginActivity.this);
@@ -169,16 +181,15 @@ public class loginActivity extends AppCompatActivity
 
                         } else {
                             showProgress(false);
-                            // If sign in fails, display a message to the user.
-                            Log.w(TAG, "createUserWithEmail:failure", task.getException());
+
                             loginActivity.this.emailLayout.setError("Email Incorrecto");
-                            loginActivity.this.emailLayout.setError("Contraseña Incorrecto");
+                            loginActivity.this.passLayout.setError("Contraseña Incorrecto");
                         }
 
-                        // ...
                     }
                 });
     }
+
     /*private void signOut() {
         // Firebase sign out
         mAuth.signOut();
@@ -192,9 +203,7 @@ public class loginActivity extends AppCompatActivity
                     }
                 });
     }*/
-    private static void createUserInDB(){
-        User.getCurrentUser().save();
-    }
+
 
 
     private void updateUI(FirebaseUser user) {
@@ -210,6 +219,7 @@ public class loginActivity extends AppCompatActivity
 
         }
     }
+
     private void startMainActivity(){
         Intent intent   = new Intent(loginActivity.this,MainActivity.class);
         startActivity(intent);
@@ -246,9 +256,23 @@ public class loginActivity extends AppCompatActivity
             }
         });
     }
+    @Override
+    public void onError(final String message) {
+
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                // SHOW MESSAGE
+                showMessage(message);
+                showProgress(false);
+            }
+        });
+    }
 
     protected static class SaveUserTask extends AsyncTask<Boolean,Object,Boolean>{
+
         private ISaveUserTask iSaveUserTask;
+        private boolean isComplete=false;
         public SaveUserTask(ISaveUserTask iSaveUserTask) {
             this.iSaveUserTask = iSaveUserTask;
         }
@@ -267,11 +291,10 @@ public class loginActivity extends AppCompatActivity
             while(Auth.getInstance()==null){
 
             }
-            Socket socket = SocketIO.getSocket();
-            while (!socket.connected()){
+            User.getCurrentUser().save().addOnSuccessListener(onSuccessInFirebase);
+            while(!isComplete){
 
             }
-            createUserInDB();
             return null;
         }
 
@@ -281,11 +304,47 @@ public class loginActivity extends AppCompatActivity
             this.iSaveUserTask.onComplete();
         }
 
+        OnSuccessListener onSuccessInFirebase=new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void aVoid) {
+
+
+                User user =User.getCurrentUser();
+                ConcurrentApiClient
+                        .getConcurrentApiService()
+                        .registerUser(user.getIdGoogle(),
+                                user.getName(),
+                                user.getName(),
+                                "hola").enqueue(saveInServer);
+
+            }
+        };
+
+
+
+        Callback<String> saveInServer=  new Callback<String>() {
+            @Override
+            public void onResponse(Call<String> call, Response<String> response) {
+                if(response.code()==200){
+                    isComplete=true;
+                }
+                Timber.d(response.toString());
+
+            }
+
+            @Override
+            public void onFailure(Call<String> call, Throwable t) {
+                iSaveUserTask.onError(t.getMessage());
+            }
+        };
 
     }
 
+
 }
+
  interface ISaveUserTask{
     void onPreExecute();
     void onComplete();
+    void onError(String message);
 }

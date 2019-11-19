@@ -5,6 +5,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Application;
 import android.arch.lifecycle.AndroidViewModel;
+import android.arch.lifecycle.MutableLiveData;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
@@ -12,13 +13,19 @@ import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.view.View;
 
 import com.example.mrrobot.concurrent.Config.MapBox;
 import com.example.mrrobot.concurrent.R;
 import com.example.mrrobot.concurrent.Services.SocketIO;
+import com.example.mrrobot.concurrent.Utils.DestinationSymbol;
+import com.example.mrrobot.concurrent.Utils.SymbolPrinter;
 import com.example.mrrobot.concurrent.models.Destination;
 import com.example.mrrobot.concurrent.models.Localization;
+import com.example.mrrobot.concurrent.models.Participant;
 import com.example.mrrobot.concurrent.models.User;
+import com.example.mrrobot.concurrent.ui.home.DestinationAdapter;
+import com.google.gson.JsonObject;
 import com.mapbox.android.core.location.LocationEngine;
 import com.mapbox.android.core.location.LocationEngineCallback;
 import com.mapbox.android.core.location.LocationEngineRequest;
@@ -39,11 +46,22 @@ import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 import com.mapbox.mapboxsdk.location.LocationComponent;
 import com.mapbox.mapboxsdk.maps.Style;
+import com.mapbox.mapboxsdk.plugins.annotation.Symbol;
+import com.mapbox.mapboxsdk.style.layers.Layer;
 import com.mapbox.mapboxsdk.style.layers.SymbolLayer;
 import com.mapbox.mapboxsdk.style.sources.GeoJsonSource;
+import com.mapbox.mapboxsdk.style.sources.Source;
+
+import static com.mapbox.mapboxsdk.style.layers.Property.NONE;
+import static com.mapbox.mapboxsdk.style.layers.Property.VISIBLE;
+import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.visibility;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
@@ -58,15 +76,21 @@ import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconTextFit;
 
 public class LocationViewModel extends AndroidViewModel implements
         OnMapReadyCallback,
-        LocationEngineCallback<LocationEngineResult> ,
-        Destination.IListener {
+        LocationEngineCallback<LocationEngineResult>,
+        Destination.IListener, DestinationAdapter.IEventListener {
 
     public MapView mapView;
     private MapboxMap mapboxMap;
-    private LocationEngine locationEngine;
-    Socket socketIO;
-    private LatLng currentPosition = new LatLng(-16.4273742, -71.5431796);
+    private Style style;
 
+    private LocationEngine locationEngine;
+
+
+
+    private MutableLiveData<Destination> currentDestination = new MutableLiveData<>();
+
+    private HashMap<String, DestinationSymbol> symbolHashMap = new HashMap<>();
+    private SymbolPrinter symbolPrinter;
 
     //////////////////////////////
     ///////////METHODS
@@ -74,12 +98,10 @@ public class LocationViewModel extends AndroidViewModel implements
 
     public LocationViewModel(Application application) {
         super(application);
-        this.socketIO = SocketIO.getSocket();
 
     }
-    public  MapboxMap getMapBox(){
-        return mapboxMap;
-    }
+
+
     public void setMapView(MapView mapView, Bundle savedInstanceState) {
 
         this.mapView = mapView;
@@ -96,11 +118,14 @@ public class LocationViewModel extends AndroidViewModel implements
         // SET STYLE
         //String themeCurrent = MapBox.style;
         this.mapboxMap.setStyle(MapBox.style, new Style.OnStyleLoaded() {
+
+
             @Override
             public void onStyleLoaded(@NonNull Style style) {
                 enableLocationComponent();
                 enableLocationEngine();
-
+                LocationViewModel.this.style = style;
+                configSymbolManager(style);
                 //createASymbolLayer(style,"layerUno","casa",getApplication().getApplicationContext());
                 //createPoint(style);
 
@@ -108,111 +133,139 @@ public class LocationViewModel extends AndroidViewModel implements
         });
     }
 
-    /*private void createPoint(Style style) {
 
-        Resources resources = getApplication().getApplicationContext().getResources();
-        if (resources == null) {
-            Toast.makeText(getApplication().getApplicationContext(), "null Resources", Toast.LENGTH_LONG).show();
+    private void configSymbolManager(Style style) {
+        this.symbolPrinter = new SymbolPrinter(mapView, mapboxMap);
+        //this.symbolPrinter.addDragListener(this);
+    }
+
+    private void printDestination(Destination destination) {
+
+        if (existInSymbolHash(destination)) {
+
+            DestinationSymbol destinationSymbol = this.symbolHashMap.get(destination.getId());
+            destinationSymbol.print();
         } else {
-            //Bitmap bitmap = BitmapFactory.decodeResource(this.context.getResources(), R.drawable.ic_location_on_black_24dp);
-            //style.addImage("location_icon", bitmap);
-            style.addImage("marker-icon-id",
-                    BitmapFactory.decodeResource(
-                            resources, R.drawable.mapbox_marker_icon_default));
-            geoJsonSource = new GeoJsonSource("source-id",
-                    Feature.fromGeometry(Point.fromLngLat(-71.5370, -16.3989
-                    )));
 
-            style.addSource(geoJsonSource);
-
-            style.addLayer(new SymbolLayer("layer-id", "source-id")
-                    .withProperties(
-                            PropertyFactory.iconImage("location_icon"),
-                            PropertyFactory.iconIgnorePlacement(true),
-                            PropertyFactory.iconAllowOverlap(true)
-                    ));
-
+            DestinationSymbol destinationSymbol = new
+                    DestinationSymbol(this.symbolPrinter, destination);
+            this.symbolHashMap.put(destination.getId(), destinationSymbol);
+            destinationSymbol.print();
         }
 
-    }*/
-
-    // -16.429366, -71.545707
-    public static void createASymbolLayer(@NonNull Style style,Destination destination,Context context) {
+    }
 
 
+    private boolean existInSymbolHash(Destination aDestination) {
+        DestinationSymbol destinationSymbol = this.symbolHashMap.get(aDestination.getId());
+        return destinationSymbol != null;
+    }
 
-        Resources resources = context.getResources();
-        if(resources!=null) {
-            Bitmap bitmap = BitmapFactory.decodeResource(
-                    resources, R.drawable.ic_marker_15);
+    private void printParticipants(Destination destination) {
 
-            style.addImage("marker_15",bitmap);
-
-            GeoJsonSource geoJsonSource = new GeoJsonSource(destination.getId());
-            //double latitude= destination.getLocalization().getLatitude();
-            //double longitude = destination.getLocalization().getLongitude();
-            //geoJsonSource.setGeoJson(Feature.fromGeometry(Point.fromLngLat(longitude,latitude)));
-
-            style.addSource(geoJsonSource);
-
-            SymbolLayer symbolLayer = new SymbolLayer("layerID","SourceId");
-           symbolLayer.withProperties(
-                   iconColor(destination.getColor()),
-                   iconTextFit(destination.getName()),
-                   iconImage("marker_15")
-           );
-
-            style.addLayer(symbolLayer);
+        if (existLayer(destination.getId())) {
+            updateSource(destination);
+            setVisibleToLayer(destination.getId());
+        } else {
+            createASymbolLayer(destination);
         }
     }
-    public  void goToDestination(Destination destination) {
+
+    private boolean existLayer(String idLayer) {
+        return this.style.getLayer(idLayer) != null;
+    }
+
+
+    private void setVisibleToLayer(String id) {
+        Layer layer = this.mapboxMap.getStyle().getLayer(id);
+        layer.setProperties(visibility(VISIBLE));
+    }
+
+    // -16.429366, -71.545707
+    private void createASymbolLayer(Destination destination) {
+        String id = destination.getId();
+
+        Source source = createSourceOfDestination(destination);
+        this.style.addSource(source);
+
+
+        SymbolLayer symbolLayer = new SymbolLayer(id, id);
+        symbolLayer.withProperties(
+                iconColor(destination.getColor()),
+                iconImage("marker_15")
+        );
+        style.addLayer(symbolLayer);
+    }
+
+    private Source createSourceOfDestination(Destination destination) {
+        FeatureCollection fc = getFeatureCollectionOfDestination(destination);
+        Source source = new GeoJsonSource(destination.getId(), fc);
+        return source;
+    }
+
+    private FeatureCollection getFeatureCollectionOfDestination(Destination destination) {
+
+        List<Feature> features = destination.getFeatures();
+        FeatureCollection fc = FeatureCollection.fromFeatures(features);
+        return fc;
+    }
+
+    public void goToDestination(Destination destination) {
 
         LatLng latLng = destination.getDestinationLatLng();
         this.mapboxMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
     }
 
-    // on click in destination
-    @Override
-    public void onClick(Destination destination) {
-        goToDestination(destination);
+
+    private void updateSource(Destination destination) {
+        String sourceId = destination.getId();
+        GeoJsonSource spaceStationSource = this.style.getSourceAs(sourceId);
+
+        if (spaceStationSource != null) {
+            FeatureCollection featureCollection = getFeatureCollectionOfDestination(destination);
+            spaceStationSource.setGeoJson(featureCollection);
+            /*spaceStationSource.setGeoJson(FeatureCollection.fromFeature(
+                    Feature.fromGeometry(Point.fromLngLat(position.getLongitude(), position.getLatitude()))
+            ));*/
+        }
+    }
+    private void setCurrentDestination(Destination destination){
+        this.currentDestination.postValue(destination);
+    }
+    private void hideDestinationPrevious() {
+        Destination previous = this.currentDestination.getValue();
+        if (previous != null) {
+            String destinationId = previous.getId();
+            Layer layer = this.mapboxMap.getStyle().getLayer(destinationId);
+            layer.setProperties(visibility(NONE));
+        }
     }
 
-    Emitter.Listener onLocalizationChange = new Emitter.Listener() {
-        @Override
-        public void call(Object... args) {
-            LatLng latLng;
-            String sourceUserID;
-            try {
-                JSONObject data = (JSONObject) args[0];
-                sourceUserID = data.getString("userID");
-                String latitude = data.getString("latitude ");
-                String longitude = data.getString("longitude ");
-                latLng = new LatLng(Double.parseDouble(latitude), Double.parseDouble(longitude));
+    /**
+     * Called when a Destination layout has been clicked
+     *
+     * @param position in list
+     * @param view     The view that was clicked.
+     */
+    @Override
+    public void onDestinationClick(int position, View view) {
+        User user = User.getCurrentUser();
+        Destination destination = user.getMyDestinations().get(position);
+        printDestination(destination);
+        printParticipants(destination);
+        hideDestinationPrevious();
+        setCurrentDestination(destination);
+    }
 
-            } catch (JSONException e) {
-                return;
-            }
-            updateMarkerPosition(latLng,sourceUserID);
-        }
-    };
+    private void onParticipantChangePosition(Destination destination, Participant participant){
+        Destination currentDestination=this.currentDestination.getValue();
+        if(currentDestination!=null && currentDestination.equals(destination))
+            updateSource(destination);
+    }
 
-    private void updateMarkerPosition(LatLng position,String source) {
-        // This method is were we update the marker position once we have new coordinates. First we
-        // check if this is the first time we are executing this handler, the best way to do this is
-        // check if marker is null;
-        if (this.mapboxMap.getStyle()!= null && position!=null && source!=null) {
-            GeoJsonSource  spaceStationSource = this.mapboxMap.getStyle().getSourceAs(source);
-
-            if (spaceStationSource != null) {
-                spaceStationSource.setGeoJson(FeatureCollection.fromFeature(
-                        Feature.fromGeometry(Point.fromLngLat(position.getLongitude(), position.getLatitude()))
-                ));
-            }
-        }
-
-        // Lastly, animate the camera to the new position so the user
-        // wont have to search for the marker and then return.
-        //map.animateCamera(CameraUpdateFactory.newLatLng(position));
+    @Override
+    public void emitParticipantChange(Destination destination, Participant participant) {
+        onParticipantChangePosition(destination,participant);
     }
 
     @SuppressLint("MissingPermission")
@@ -259,10 +312,8 @@ public class LocationViewModel extends AndroidViewModel implements
         // Localization logic here
 
         Location lastLocation = result.getLastLocation();
-
-        User.getCurrentUser().myLocation.setValue(lastLocation);
-        Localization localization = new Localization("",lastLocation.getLatitude(),lastLocation.getLongitude());
-        SocketIO.emitMyLocalizationChange(localization);
+        if(lastLocation!=null)
+            User.getCurrentUser().setLocation(lastLocation);
     }
 
     // locationEngine.requestLocationUpdates

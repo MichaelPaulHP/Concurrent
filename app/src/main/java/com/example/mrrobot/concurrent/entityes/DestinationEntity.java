@@ -5,6 +5,9 @@ import android.location.Location;
 import com.example.mrrobot.concurrent.models.Destination;
 import com.example.mrrobot.concurrent.models.User;
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,6 +23,7 @@ public class DestinationEntity {
     public Double destinationLongitude;
     public String userId;
     public String chatId;
+    public String dist;
     //public String originAddress;
     //public String destinationAddress;
     //toDestination(){ }
@@ -32,9 +36,8 @@ public class DestinationEntity {
         this.originLongitude = destination.getOrigin().getLongitude();
         this.destinationLatitude = destination.getDestination().getLatitude();
         this.destinationLongitude = destination.getDestination().getLongitude();
-        this.userId = User.getCurrentUser().getId();
-        if(destination.getChat()!=null)
-            chatId=destination.getChat().getKey();
+        this.userId = destination.createBy();
+        this.chatId=destination.getChatId();
     }
 
     public static List<Destination> readDestinations(Object... args) {
@@ -53,9 +56,10 @@ public class DestinationEntity {
     }
 
     private  static DestinationEntity fromObject(Object object) {
-        String json = (String) object;
+        JSONObject json = (JSONObject) object;
+
         Gson gson = new Gson();
-        return gson.fromJson(json, DestinationEntity.class);
+        return gson.fromJson(json.toString(), DestinationEntity.class);
     }
 
 }

@@ -3,10 +3,13 @@ package com.example.mrrobot.concurrent.Utils;
 import android.util.ArrayMap;
 import android.util.Log;
 
+import com.example.mrrobot.concurrent.models.Destination;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Utils {
@@ -47,5 +50,15 @@ public class Utils {
             Log.d("JSONException", e.getMessage());
         }
         return jsonObject;
+    }
+
+    public static <T> T findInList(List<T> list, T x) {
+
+        for (T t : list) {
+            if (t.equals(x)) {
+                return t;
+            }
+        }
+        return null;
     }
 }

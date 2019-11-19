@@ -37,10 +37,13 @@ public class DestinationSymbol {
     }
 
     public void hide(){
-        this.symbolPrinter.deleleSymbol(destinationSymbol);
-        this.symbolPrinter.deleleSymbol(originSymbol);
-        this.originSymbol=null;
-        this.destinationSymbol=null;
+
+        if(destinationSymbol!=null && originSymbol!=null){
+            this.symbolPrinter.deleleSymbol(destinationSymbol);
+            this.symbolPrinter.deleleSymbol(originSymbol);
+            this.originSymbol=null;
+            this.destinationSymbol=null;
+        }
     }
     public void setDestination(Destination destination){
         this.destination=destination;

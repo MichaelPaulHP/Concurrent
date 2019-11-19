@@ -5,23 +5,27 @@ import android.databinding.BaseObservable;
 import android.databinding.Bindable;
 import android.databinding.BindingAdapter;
 import android.location.Location;
+import android.support.annotation.Nullable;
 import android.widget.ImageView;
 
+import com.example.mrrobot.concurrent.Firebase.DB.ChatData;
 import com.example.mrrobot.concurrent.Utils.RandomColors;
 import com.example.mrrobot.concurrent.entityes.DestinationEntity;
+import com.mapbox.geojson.Feature;
 import com.mapbox.mapboxsdk.geometry.LatLng;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class Destination extends BaseObservable {
 
 
     public static final String ADDRESS_SEPARATOR = "-";
-    public static MutableLiveData<Destination> destinationSelected = new MutableLiveData<>();
+
 
     private MutableLiveData<Destination> mutableLiveData;
 
@@ -32,12 +36,13 @@ public class Destination extends BaseObservable {
     private DestinationEntity entity;
     private IListener listener;
 
+    private List<Participant> participants = new ArrayList<>();
 
-    public Destination(Chat chat, String userId) {
-        this.chat = chat;
 
+    public Destination(String userId) {
 
         this.entity = new DestinationEntity();
+        this.entity.chatId = ChatData.getAnId();
         this.entity.userId = userId;
         this.entity.numUsers = 0;
         this.entity.color = new RandomColors().getColor();
@@ -56,6 +61,14 @@ public class Destination extends BaseObservable {
                 entity.destinationLatitude,
                 entity.destinationLongitude);
     }
+    public List<Feature> getFeatures(){
+        List<Feature> features= new ArrayList<>();
+        for (Participant participant : this.participants) {
+            Feature feature = participant.getFeature();
+            features.add(feature);
+        }
+        return features;
+    }
 
     private Location createLocation(Double latitude, Double longitude) {
         Location location = new Location("");
@@ -66,17 +79,28 @@ public class Destination extends BaseObservable {
 
 
 
-    public static Destination findDestinationInListById(List<Destination> list, Destination x) {
+    public void setParticipant(Participant aParticipant){
 
-        for (Destination destination : list) {
-            if (destination.getId().equals(x.getId())) {
-                return destination;
+        Participant  participant= this.findParticipant(aParticipant);
+        updateParticipant(participant,aParticipant);
+        
+        this.listener.emitParticipantChange(this,participant);
+
+    }
+
+    public Participant findParticipant(Participant aParticipant){
+        for (Participant participant : this.participants) {
+            if (participant.equals(aParticipant)) {
+                return participant;
             }
         }
         return null;
     }
 
+    private void updateParticipant(Participant target,Participant newParticipant){
+        target=newParticipant;
 
+    }
 
     public boolean isOwn() {
 
@@ -123,7 +147,9 @@ public class Destination extends BaseObservable {
         entity.numUsers = numUsers;
         //notifyPropertyChanged(BR.numUsers);
     }
-
+    public String createBy(){
+        return entity.userId;
+    }
 
     public int getColor() {
         return entity.color;
@@ -136,6 +162,12 @@ public class Destination extends BaseObservable {
     public void setName(String name) {
         entity.name = name;
         notifyChangeAttribute();
+    }
+    public String getChatId(){
+        if(this.chat==null)
+            return entity.chatId;
+        return this.chat.getKey();
+
     }
 
     public void setOriginAddress(String name) {
@@ -217,16 +249,29 @@ public class Destination extends BaseObservable {
         notifyChangeAttribute();
     }
 
-    public interface IListener {
-
-        void onClick(Destination destination);
-        //void onSelected(Destination destination);
-        //void goToDestination(Destination destination);
-    }
 
     private void notifyChangeAttribute() {
         if (this.mutableLiveData != null)
             this.mutableLiveData.postValue(this);
+    }
+
+
+    @Override
+    public boolean equals(@Nullable Object obj) {
+        if(this==obj)
+            return true;
+        if(obj instanceof Destination){
+            Destination destination=(Destination)obj;
+            return destination.getId().equals(this.getId());
+        }
+        return false;
+    }
+
+    public interface IListener {
+
+        void emitParticipantChange(Destination destination,Participant participant);
+        //void onSelected(Destination destination);
+        //void goToDestination(Destination destination);
     }
 
 

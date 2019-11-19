@@ -102,29 +102,12 @@ public class MainActivity extends AppCompatActivity
         findViewById(R.id.btnFormLocation).setOnClickListener(this);
         initRecyclerViewOfDestinations();
 
-        subscribeDestinationSelected();
+
         subscribeToHasNewDestination();
         subscribeConnectTask();
     }
 
-    private void subscribeDestinationSelected() {
-        final Observer<Destination> booleanObserver = new Observer<Destination>() {
-            @Override
-            public void onChanged(@Nullable final Destination destination) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
 
-                        MainActivity.this.locationViewModel.goToDestination(destination);
-
-                    }
-                });
-
-            }
-        };
-
-        Destination.destinationSelected.observe(this, booleanObserver);
-    }
 
     private void subscribeToHasNewDestination() {
 
@@ -175,8 +158,9 @@ public class MainActivity extends AppCompatActivity
                                 false));
         destinationAdapter = new DestinationAdapter();
         this.recyclerViewListDestinations.setAdapter(destinationAdapter);
-
+        destinationAdapter.setEventListener(this.locationViewModel);
         destinationAdapter.setDestinations(User.getCurrentUser().getMyDestinations());
+
     }
 
     private void showProgressBar(Boolean show) {

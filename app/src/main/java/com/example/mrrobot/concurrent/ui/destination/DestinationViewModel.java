@@ -13,6 +13,7 @@ import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.util.Log;
+import android.view.View;
 
 import com.example.mrrobot.concurrent.Config.MapBox;
 import com.example.mrrobot.concurrent.R;
@@ -20,18 +21,14 @@ import com.example.mrrobot.concurrent.Services.SocketIO;
 import com.example.mrrobot.concurrent.Utils.DestinationSymbol;
 import com.example.mrrobot.concurrent.Utils.IMessenger;
 import com.example.mrrobot.concurrent.Utils.SymbolPrinter;
+import com.example.mrrobot.concurrent.Utils.Utils;
 import com.example.mrrobot.concurrent.entityes.DestinationEntity;
 import com.example.mrrobot.concurrent.models.Destination;
 import com.example.mrrobot.concurrent.models.DestinationData;
 import com.example.mrrobot.concurrent.models.User;
 import com.example.mrrobot.concurrent.ui.home.DestinationAdapter;
 import com.google.android.libraries.places.api.model.Place;
-import com.mapbox.api.geocoding.v5.GeocodingCriteria;
-import com.mapbox.api.geocoding.v5.MapboxGeocoding;
-import com.mapbox.api.geocoding.v5.models.CarmenFeature;
-import com.mapbox.api.geocoding.v5.models.GeocodingResponse;
-import com.mapbox.core.exceptions.ServicesException;
-import com.mapbox.geojson.Point;
+
 import com.mapbox.mapboxsdk.camera.CameraPosition;
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
 import com.mapbox.mapboxsdk.geometry.LatLng;
@@ -53,17 +50,16 @@ import java.util.Locale;
 
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
+
 import timber.log.Timber;
 
 public class DestinationViewModel extends AndroidViewModel
-        implements OnMapReadyCallback, DestinationAdapter.IEventListener, OnSymbolDragListener {
+        implements OnMapReadyCallback,DestinationAdapter.IEventListener,  OnSymbolDragListener {
 
     private MapView mapView;
     private MapboxMap mapboxMap;
-    private SymbolManager symbolManager;
+
+
 
     private Socket socket;
     private List<Destination> resultsDestination = new ArrayList<>();
@@ -77,18 +73,15 @@ public class DestinationViewModel extends AndroidViewModel
     private Location origin;
     private Location destination;
 
-    private Symbol originSymbol;
-    private Symbol destinationSymbol;
-
 
     public MutableLiveData<Destination> destinationFound = new MutableLiveData<>();
     private DestinationSymbol destinationFoundSymbol;
 
-    private static final String MAKI_ICON_MARKER = "marker-stroked-15";
+
     private static final String ICON_PLACE = "ic-place";
 
     private IMessenger messenger;
-    private String TAG = "DestinationViewModel";
+
 
     //////////////////////////////
     ///////////METHODS
@@ -144,7 +137,11 @@ public class DestinationViewModel extends AndroidViewModel
         if (resources != null) {
             Bitmap bitmap = BitmapFactory.decodeResource(
                     resources, R.drawable.ic_place);
-            Bitmap bitmap1 = BitmapUtils.getBitmapFromDrawable(resources.getDrawable(R.drawable.ic_location_on_black_24dp));
+
+            Bitmap bitmap1 = BitmapUtils
+                    .getBitmapFromDrawable(
+                            resources.getDrawable(R.drawable.ic_location_on_black_24dp));
+
             style.addImage(ICON_PLACE, bitmap1, true);
         }
     }
@@ -154,14 +151,21 @@ public class DestinationViewModel extends AndroidViewModel
         this.origin = getMyLocation();
         if (this.origin != null) {
 
-            this.myDestinationTemp = new Destination(null, User.getCurrentUser().getId());
+            this.myDestinationTemp = new Destination(User.getCurrentUser().getIdGoogle());
             this.myDestinationTemp.initMutableLiveData();
             this.myDestinationTemp.setOrigin(this.origin);
         }
     }
-    private void initMyDestinationSymbol(){
-        this.myDestinationTempSymbol = new DestinationSymbol(this.symbolPrinter,this.myDestinationTemp);
+
+    private void initMyDestinationSymbol() {
+        this.myDestinationTempSymbol =
+                new DestinationSymbol
+                (
+                        this.symbolPrinter,
+                        this.myDestinationTemp
+                );
     }
+
     private void printAndGoMyOrigin() {
 
 
@@ -180,7 +184,7 @@ public class DestinationViewModel extends AndroidViewModel
         return location;
     }
 
-    private void printMyDestination(){
+    private void printMyDestination() {
         this.myDestinationTempSymbol.setDestination(this.myDestinationTemp);
         this.myDestinationTempSymbol.print();
     }
@@ -232,8 +236,6 @@ public class DestinationViewModel extends AndroidViewModel
     }
 
 
-
-
     public void goLocation(Location location) {
 
         Double zoom = this.mapboxMap.getCameraPosition().zoom;
@@ -269,7 +271,7 @@ public class DestinationViewModel extends AndroidViewModel
         if (origin != null && destination != null) {
             //Destination.emitFindDestinations(origin,destination);
             DestinationData.findDestinations(this.myDestinationTemp);
-            this.resultsDestination.clear();
+            // this.resultsDestination.clear();
             this.hasNewDestination.postValue(false);
         }
 
@@ -298,7 +300,9 @@ public class DestinationViewModel extends AndroidViewModel
 
     private void addToListOfResults(Destination destination) {
         Destination destinationFound;
-        destinationFound = Destination.findDestinationInListById(this.resultsDestination, destination);
+
+        //destinationFound = Destination.findDestinationInListById(this.resultsDestination, destination);
+        destinationFound = Utils.findInList(this.resultsDestination, destination);
         if (destinationFound == null) {
             this.resultsDestination.add(destination);
             this.hasNewDestination.postValue(true);
@@ -312,23 +316,12 @@ public class DestinationViewModel extends AndroidViewModel
     private void createDestinationsFoundSymbol() {
         this.destinationFoundSymbol =
                 new DestinationSymbol(
-                        this.symbolPrinter, this.destinationFound.getValue());
+                        this.symbolPrinter,
+                        this.destinationFound.getValue()
+                );
     }
 
-    /**
-     * Called when a Destination layout has been clicked of list
-     *
-     * @param position    in list
-     * @param destination is a Destination
-     */
-    @Override
-    public void onDestinationClick(int position, Destination destination) {
-        if (destinationFoundSymbol == null)
-            createDestinationsFoundSymbol();
-        this.destinationFoundSymbol.setDestination(destination);
-        this.destinationFoundSymbol.print();
-        this.destinationFound.postValue(destination);
-    }
+
 
 
     public void OnSubmit() throws JSONException {
@@ -348,7 +341,7 @@ public class DestinationViewModel extends AndroidViewModel
                 } else {
                     // this user join to destination
                     //Destination.emitJoinToDestination(destinationSelected.getId());
-                    DestinationData.addParticipant(destinationSelected.getId(), current.getId());
+                    DestinationData.addParticipant(destinationSelected.getId(), current.getIdGoogle());
                 }
             }
         }
@@ -364,44 +357,6 @@ public class DestinationViewModel extends AndroidViewModel
     }
 
 
-    private void searchPlace(LatLng latLng, final MutableLiveData<Destination> destinationLiveData) {
-        try {
-            MapboxGeocoding client = MapboxGeocoding.builder()
-                    .accessToken(MapBox.token)
-                    .query(Point.fromLngLat(latLng.getLongitude(), latLng.getLatitude()))
-                    .geocodingTypes(GeocodingCriteria.TYPE_ADDRESS)
-                    .build();
-            client.enqueueCall(new Callback<GeocodingResponse>() {
-                @Override
-                public void onResponse(Call<GeocodingResponse> call, Response<GeocodingResponse> response) {
-                    List<CarmenFeature> results = response.body().features();
-                    Log.d(TAG, "onResponse " + results.size());
-                    if (results.size() > 0) {
-                        CarmenFeature feature = results.get(0);
-                        String name = feature.placeName();
-                        Log.d(TAG, "onResponse " + name);
-                        Destination destination = destinationLiveData.getValue();
-                        destination.setName(name);
-                        destinationLiveData.postValue(destination);
-                    } else {
-
-                    }
-                }
-
-                @Override
-                public void onFailure(Call<GeocodingResponse> call, Throwable t) {
-
-                    Log.d(TAG, "onFailure " + t.getMessage());
-                }
-            });
-
-
-        } catch (ServicesException servicesException) {
-            Log.e(TAG, "Error geocoding: %s" + servicesException.toString());
-
-            servicesException.printStackTrace();
-        }
-    }
 
     /*private void getAddressFromLatLng(final LatLng latLng, final MutableLiveData<Destination> destinationLiveData) {
         final Destination destination=destinationLiveData.getValue();
@@ -496,13 +451,13 @@ public class DestinationViewModel extends AndroidViewModel
             if (myDestinationTempSymbol.getOriginId() == annotation.getId()) {
 
                 distance = latLng.distanceTo(this.myDestinationTemp.getOriginLatLng());
-                updateOrigin(latLng.getLatitude(),latLng.getLongitude());
+                updateOrigin(latLng.getLatitude(), latLng.getLongitude());
                 setName(true);
 
             }
             if (myDestinationTempSymbol.getDestinationId() == annotation.getId()) {
                 distance = latLng.distanceTo(this.myDestinationTemp.getDestinationLatLng());
-                updateDestination(latLng.getLatitude(),latLng.getLongitude());
+                updateDestination(latLng.getLatitude(), latLng.getLongitude());
                 setName(false);
             }
 
@@ -518,6 +473,13 @@ public class DestinationViewModel extends AndroidViewModel
         }
     }
 
+    public double calculeDistance() {
+        LatLng origin = this.myDestinationTemp.getOriginLatLng();
+        LatLng destination = this.myDestinationTemp.getDestinationLatLng();
+        return origin.distanceTo(destination);
+
+    }
+
     private void setName(boolean toOrigin) {
         if (toOrigin) {
             String address = getAddressFromLocation(myDestinationTemp.getOrigin());
@@ -529,14 +491,25 @@ public class DestinationViewModel extends AndroidViewModel
     }
 
 
-    private void setName(MutableLiveData<Destination> destinationMlv, String name) {
-        Destination destination = destinationMlv.getValue();
-        destination.setName(name);
-        destinationMlv.postValue(destination);
-    }
-
     public void setMessenger(IMessenger messenger) {
         this.messenger = messenger;
     }
 
+
+    /**
+     * Called when a Destination layout has been clicked
+     *
+     * @param position in list
+     * @param view     The view that was clicked.
+     */
+    @Override
+    public void onDestinationClick(int position, View view) {
+        Destination destination=this.resultsDestination.get(position);
+        if (destinationFoundSymbol == null)
+            createDestinationsFoundSymbol();
+        this.myDestinationTempSymbol.hide();
+        this.myDestinationTempSymbol.setDestination(destination);
+        this.myDestinationTempSymbol.print();
+        this.destinationFound.postValue(destination);
+    }
 }

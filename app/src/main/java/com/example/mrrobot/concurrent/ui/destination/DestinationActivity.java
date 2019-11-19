@@ -175,13 +175,21 @@ public class DestinationActivity extends AppCompatActivity implements View.OnCli
                         if (hasDestination(aDestination) && aDestination.getName()!=null) {
                             // set text
 
-                            DestinationActivity.this.binding.btnMyDestination.setText(aDestination.getDestinationAddress());
+                            //DestinationActivity.this.binding.btnMyDestination.setText(aDestination.getDestinationAddress());
+                            String latitude=aDestination.getDestination().getLatitude()+"";
+                            String longitude = aDestination.getDestination().getLongitude()+"";
+                            String text=latitude+"|"+longitude;
+                            DestinationActivity.this.binding.btnMyDestination.setText(text);
 
                             if (hasOrigin(aDestination)) {
-
-                                DestinationActivity.this.binding.btnMyOrigin.setText(aDestination.getOriginAddress());
+                                String latitudeO=aDestination.getOrigin().getLatitude()+"";
+                                String longitudeO = aDestination.getOrigin().getLongitude()+"";
+                                String textO=latitudeO+"|"+longitudeO;
+                                DestinationActivity.this.binding.btnMyOrigin.setText(textO);
                                 showLayoutToJoin();
                                 showDestinationToJoin(aDestination, "Create");
+                                String distance=destinationViewModel.calculeDistance()+"";
+                                binding.btnReadyForJoined.setText(distance);
                             }
                         }
                         /*if(hasOrigin(aDestination)){
@@ -242,7 +250,6 @@ public class DestinationActivity extends AppCompatActivity implements View.OnCli
 
                 Place place = Autocomplete.getPlaceFromIntent(data);
                 Timber.d("ee");
-                Log.i(TAG, "Place: " + place.getName() + ", " + place.getId());
 
                 Boolean isDestination = requestCode == AUTOCOMPLETE_REQUEST_CODE + 1;
                 this.destinationViewModel.onPlaceSelected(place, isDestination);
@@ -252,7 +259,7 @@ public class DestinationActivity extends AppCompatActivity implements View.OnCli
             } else if (resultCode == AutocompleteActivity.RESULT_ERROR) {
                 // TODO: Handle the error.
                 Status status = Autocomplete.getStatusFromIntent(data);
-                Log.i(TAG, status.getStatusMessage());
+
             } else if (resultCode == RESULT_CANCELED) {
                 // The user canceled the operation.
             }

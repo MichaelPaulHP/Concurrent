@@ -29,8 +29,13 @@ public class DestinationAdapter extends RecyclerView.Adapter<DestinationAdapter.
     public DestinationAdapterViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
 
         DestinationBinding layoutDeviceBinding =
-                DataBindingUtil.inflate(LayoutInflater.from(parent.getContext()), R.layout.destination,
-                        parent, false);
+                DataBindingUtil.inflate
+                        (
+                        LayoutInflater.from(parent.getContext()),
+                        R.layout.destination,
+                        parent,
+                        false
+                        );
 
 
         return new DestinationAdapterViewHolder(layoutDeviceBinding);
@@ -51,8 +56,11 @@ public class DestinationAdapter extends RecyclerView.Adapter<DestinationAdapter.
      *
      */
     public void notifyNewDestinationInserted() {
-
-        notifyItemInserted(this.destinations.size() - 1);
+        this.notifyDataSetChanged();
+        /*if(this.destinations.size()==0)
+            notifyItemInserted(1);
+        else
+            notifyItemInserted(this.destinations.size() - 1);*/
     }
 
     public void setEventListener(IEventListener iEventListener) {
@@ -61,12 +69,12 @@ public class DestinationAdapter extends RecyclerView.Adapter<DestinationAdapter.
 
     public interface IEventListener {
         /**
-         * Called when a Destination layout has been clicked of list
+         * Called when a Destination layout has been clicked
          *
          * @param position in list
-         * @param destination is a Destination
+         * @param view The view that was clicked.
          */
-        void onDestinationClick(int position, Destination destination);
+        void onDestinationClick(int position, View view);
         //void onItemLongClick(int position, View v);
     }
 
@@ -81,6 +89,8 @@ public class DestinationAdapter extends RecyclerView.Adapter<DestinationAdapter.
 
         public DestinationAdapterViewHolder(DestinationBinding destinationBinding) {
             super(destinationBinding.getRoot());
+            View root=destinationBinding.getRoot();
+            root.setOnClickListener(this);
             this.destinationBinding = destinationBinding;
 
         }
@@ -94,12 +104,12 @@ public class DestinationAdapter extends RecyclerView.Adapter<DestinationAdapter.
         /**
          * Called when a view has been clicked.
          *
-         * @param v The view that was clicked.
+         * @param view The view that was clicked.
          */
         @Override
-        public void onClick(View v) {
+        public void onClick(View view) {
             if(iEventListener!=null){
-            iEventListener.onDestinationClick(getAdapterPosition(),destinationBinding.getDestination());
+            iEventListener.onDestinationClick(getAdapterPosition(),view);
             }
         }
     }

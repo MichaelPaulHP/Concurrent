@@ -49,7 +49,7 @@ public class DestinationTest {
     public void nameWithOriginAndDestination(){
         String nameDes="destino";
         String nameOri="Origin";
-        Destination destination = new Destination(null,"FFFFFFF");
+        Destination destination = new Destination("FFFFFFF");
         destination.setDestinationAddress(nameDes);
         destination.setOriginAddress(nameOri);
 
@@ -62,7 +62,7 @@ public class DestinationTest {
     @Test
     public void nameWithOriginAddress(){
         String originAddress="origin";
-        Destination destination = new Destination(null,"FFFFFFF");
+        Destination destination = new Destination("FFFFFFF");
         destination.setOriginAddress(originAddress);
 
         assertEquals(originAddress,destination.getOriginAddress());
@@ -72,7 +72,7 @@ public class DestinationTest {
     @Test
     public void nameWithDestinationAddress(){
         String destinationAddress="origin";
-        Destination destination = new Destination(null,"FFFFFFF");
+        Destination destination = new Destination("FFFFFFF");
         destination.setDestinationAddress(destinationAddress);
 
         assertEquals(destinationAddress,destination.getDestinationAddress());

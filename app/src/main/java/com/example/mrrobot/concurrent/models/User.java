@@ -20,6 +20,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 
 import com.google.firebase.database.ValueEventListener;
+
 import com.stfalcon.chatkit.commons.models.IUser;
 
 import org.json.JSONObject;
@@ -27,10 +28,9 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.socket.client.Socket;
-import io.socket.emitter.Emitter;
 
-public class User implements IUser {
+
+public class User extends Participant implements IUser {
 
     private static User USER_CURRENT;
 
@@ -39,6 +39,8 @@ public class User implements IUser {
     private String name;
     private String avatar;
     private Double numChats = 0.0;
+
+
     private List<Chat> myChats = new ArrayList<>();
     private List<Destination> myDestinations = new ArrayList<>();
     public MutableLiveData<Destination> hasNewDestination= new MutableLiveData<>();
@@ -70,84 +72,49 @@ public class User implements IUser {
     /////////////// Destination
     /////////////////////////////////////////////
 
-    public void requestMyDestinations() {
-        Socket socket = SocketIO.getSocket();
 
-        socket.emit("getMyDestinations", Utils.toJsonObject("userID",getIdGoogle()));
-
-        socket.on("getMyDestinations", onGetMyDestinations);//getMyDestinations
-        boolean c=socket.connected();
-        boolean lister= socket.hasListeners("getMyDestinations");
-    }
-
-    private Emitter.Listener onGetMyDestinations = new Emitter.Listener() {
-
-        @Override
-        public void call(Object... args) {
-
-            try {
-                List<Destination> destinations = DestinationEntity.readDestinations(args);
-                for (Destination destination : destinations) {
-                    getCurrentUser().addDestination(destination);
-                }
-
-                //destination.setDestinationListener(HomeViewModel.this);
-            }
-            catch (Exception e) {
-                Log.e("USER",e.toString());
-            }
-        }
-    };
-
-    private void addDestination(Destination destination){
+    public void addMyDestination(Destination destination){
         Destination destinationMemory=findDestinationById(destination.getId());
         if(destinationMemory==null){
             this.myDestinations.add(destination);
             hasNewDestination.postValue(destination);
         }
-        else{
-            // update destination?
-            destinationMemory.setNumUsers(destination.getNumUsers());
-        }
     }
 
-
-    public void startOnJoinToDestination(){
-        Socket socket = SocketIO.getSocket();
-        socket.on("joinToDestination",onJoinToDestination);
+    public void updateMyDestination(Destination destination){
+        Destination myDestination=findDestinationById(destination.getId());
+        if(myDestination==null)
+            return;
+        myDestination.setNumUsers(destination.getNumUsers());
     }
 
-    private Emitter.Listener onJoinToDestination = new Emitter.Listener() {
-
-        @Override
-        public void call(Object... args) {
-
-
-            try {
-                List<Destination> destinations = DestinationEntity.readDestinations(args);
-                for (Destination destination : destinations) {
-
-                    getCurrentUser().addDestination(destination);
-                }
-
-            } catch (Exception e) {
-
-                return;
-            }
-        }
-    };
     public boolean isMyDestination(String id){
 
         return findDestinationById(id) != null;
     }
 
-    private Destination findDestinationById(String id){
+    public Destination findDestinationById(String id){
         for(Destination d:this.myDestinations){
             if(d.getId().equals(id))
                 return d;
         }
         return null;
     }
+
+    ///////////////////////////////////////////////////////
+    /////////////// POSITION
+    /////////////////////////////////////////////
+    public void setLocation(Location location){
+        this.myLocation.postValue(location);
+        this.setLatitude(location.getLatitude());
+        this.setLongitude(location.getLongitude());
+        UserEmitter.emitChangeMyLocation();
+    }
+
+
+
+
+
     ///////////////////////////////////////////////////////
     /////////////// CHAT
     /////////////////////////////////////////////
@@ -220,8 +187,10 @@ public class User implements IUser {
 
             chat.initListenerForNewMessagesFromDB();
         }
-
     }
+
+
+
 
     public Double getNumChats() {
         return numChats;

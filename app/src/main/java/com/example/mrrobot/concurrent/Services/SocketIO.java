@@ -16,6 +16,7 @@ import java.net.URISyntaxException;
 
 import io.socket.client.IO;
 import io.socket.client.Socket;
+import timber.log.Timber;
 
 public class SocketIO {
     private static Socket mSocket;
@@ -29,13 +30,29 @@ public class SocketIO {
                 //connectVerifyTask.execute(true);
                 if(!mSocket.connected()){
                     mSocket.connect();
-
                 }
+                emitInit();
             } catch (URISyntaxException e) {
                 throw new RuntimeException(e);
             }
         }
         return mSocket;
+    }
+    public static void emitInit(){
+
+        User user =User.getCurrentUser();
+        JSONObject jsonObject = new JSONObject();
+        try {
+
+            jsonObject.put("userName", user.getName());
+            jsonObject.put("userId", user.getIdGoogle());
+            Socket socket = getSocket();
+            socket.emit("init", jsonObject);
+        } catch (JSONException e) {
+            Timber.e(e);
+        }
+
+
     }
 
     public static void emitMyLocalizationChange(Localization localization){
