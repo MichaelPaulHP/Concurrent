@@ -51,6 +51,7 @@ import com.mapbox.mapboxsdk.style.layers.Layer;
 import com.mapbox.mapboxsdk.style.layers.SymbolLayer;
 import com.mapbox.mapboxsdk.style.sources.GeoJsonSource;
 import com.mapbox.mapboxsdk.style.sources.Source;
+import com.mapbox.mapboxsdk.utils.BitmapUtils;
 
 import static com.mapbox.mapboxsdk.style.layers.Property.NONE;
 import static com.mapbox.mapboxsdk.style.layers.Property.VISIBLE;
@@ -86,12 +87,13 @@ public class LocationViewModel extends AndroidViewModel implements
     private LocationEngine locationEngine;
 
 
-
     private MutableLiveData<Destination> currentDestination = new MutableLiveData<>();
 
     private HashMap<String, DestinationSymbol> symbolHashMap = new HashMap<>();
     private SymbolPrinter symbolPrinter;
 
+    private static final String ICON_PLACE = "ic-place";
+    private static final String ICON_PITCH = "ic-pitch";
     //////////////////////////////
     ///////////METHODS
     /////////
@@ -124,6 +126,7 @@ public class LocationViewModel extends AndroidViewModel implements
             public void onStyleLoaded(@NonNull Style style) {
                 enableLocationComponent();
                 enableLocationEngine();
+                addIcon(style);
                 LocationViewModel.this.style = style;
                 configSymbolManager(style);
                 //createASymbolLayer(style,"layerUno","casa",getApplication().getApplicationContext());
@@ -192,7 +195,7 @@ public class LocationViewModel extends AndroidViewModel implements
         SymbolLayer symbolLayer = new SymbolLayer(id, id);
         symbolLayer.withProperties(
                 iconColor(destination.getColor()),
-                iconImage("marker_15")
+                iconImage(ICON_PITCH)
         );
         style.addLayer(symbolLayer);
     }
@@ -229,16 +232,28 @@ public class LocationViewModel extends AndroidViewModel implements
             ));*/
         }
     }
-    private void setCurrentDestination(Destination destination){
+
+    private void setCurrentDestination(Destination destination) {
         this.currentDestination.postValue(destination);
     }
+
     private void hideDestinationPrevious() {
         Destination previous = this.currentDestination.getValue();
         if (previous != null) {
             String destinationId = previous.getId();
-            Layer layer = this.mapboxMap.getStyle().getLayer(destinationId);
-            layer.setProperties(visibility(NONE));
+            hideLayer(destinationId);
+            hideDestinationSymbol(destinationId);
         }
+    }
+
+    private void hideLayer(String layerId) {
+        Layer layer = this.mapboxMap.getStyle().getLayer(layerId);
+        layer.setProperties(visibility(NONE));
+    }
+
+    private void hideDestinationSymbol(String destinationId) {
+        DestinationSymbol destinationSymbol = this.symbolHashMap.get(destinationId);
+        destinationSymbol.hide();
     }
 
     /**
@@ -257,15 +272,15 @@ public class LocationViewModel extends AndroidViewModel implements
         setCurrentDestination(destination);
     }
 
-    private void onParticipantChangePosition(Destination destination, Participant participant){
-        Destination currentDestination=this.currentDestination.getValue();
-        if(currentDestination!=null && currentDestination.equals(destination))
+    private void onParticipantChangePosition(Destination destination, Participant participant) {
+        Destination currentDestination = this.currentDestination.getValue();
+        if (currentDestination != null && currentDestination.equals(destination))
             updateSource(destination);
     }
 
     @Override
     public void emitParticipantChange(Destination destination, Participant participant) {
-        onParticipantChangePosition(destination,participant);
+        onParticipantChangePosition(destination, participant);
     }
 
     @SuppressLint("MissingPermission")
@@ -312,7 +327,7 @@ public class LocationViewModel extends AndroidViewModel implements
         // Localization logic here
 
         Location lastLocation = result.getLastLocation();
-        if(lastLocation!=null)
+        if (lastLocation != null)
             User.getCurrentUser().setLocation(lastLocation);
     }
 
@@ -346,6 +361,22 @@ public class LocationViewModel extends AndroidViewModel implements
         }
         return false;
 
+    }
+
+    private void addIcon(Style style) {
+        Resources resources = getApplication().getApplicationContext().getResources();
+        if (resources != null) {
+
+            Bitmap bitmap1 = BitmapUtils
+                    .getBitmapFromDrawable(
+                            resources.getDrawable(R.drawable.ic_location_on_black_24dp));
+            Bitmap bitmapPitch = BitmapUtils
+                    .getBitmapFromDrawable(
+                            resources.getDrawable(R.drawable.ic_pitch_15));
+
+            style.addImage(ICON_PLACE, bitmap1, true);
+            style.addImage(ICON_PITCH, bitmapPitch, true);
+        }
     }
 }
 

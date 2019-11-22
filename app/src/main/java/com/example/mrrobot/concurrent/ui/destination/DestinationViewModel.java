@@ -324,15 +324,15 @@ public class DestinationViewModel extends AndroidViewModel
 
 
 
-    public void OnSubmit() throws JSONException {
-        Destination destinationSelected = this.myDestinationTemp;// setDestinationEntity
+    public void OnSubmit(Destination destination) throws JSONException {
+
+        Destination destinationSelected =destination;
         if (destinationSelected != null) {
             User current = User.getCurrentUser();
             String idDestination = destinationSelected.getId();
             // is new ?
-            if (idDestination == null) {
+            if (destinationSelected.equals(this.myDestinationTemp)) {
                 // create a new Destination
-                //Destination.emitNewDestination(destinationSelected);
                 DestinationData.newDestination(destinationSelected);
 
             } else {
@@ -340,7 +340,6 @@ public class DestinationViewModel extends AndroidViewModel
                     messenger.OnWarning("You are in this Destination");
                 } else {
                     // this user join to destination
-                    //Destination.emitJoinToDestination(destinationSelected.getId());
                     DestinationData.addParticipant(destinationSelected.getId(), current.getIdGoogle());
                 }
             }
@@ -507,9 +506,10 @@ public class DestinationViewModel extends AndroidViewModel
         Destination destination=this.resultsDestination.get(position);
         if (destinationFoundSymbol == null)
             createDestinationsFoundSymbol();
-        this.myDestinationTempSymbol.hide();
-        this.myDestinationTempSymbol.setDestination(destination);
-        this.myDestinationTempSymbol.print();
+        this.destinationFoundSymbol.hide();
+        this.destinationFoundSymbol.setDestination(destination);
+        this.destinationFoundSymbol.print();
         this.destinationFound.postValue(destination);
+        this.goLocation(destination.getOrigin());
     }
 }

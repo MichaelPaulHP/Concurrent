@@ -157,9 +157,10 @@ public class MainActivity extends AppCompatActivity
                                 LinearLayoutManager.HORIZONTAL,
                                 false));
         destinationAdapter = new DestinationAdapter();
-        this.recyclerViewListDestinations.setAdapter(destinationAdapter);
         destinationAdapter.setEventListener(this.locationViewModel);
         destinationAdapter.setDestinations(User.getCurrentUser().getMyDestinations());
+        this.recyclerViewListDestinations.setAdapter(destinationAdapter);
+
 
     }
 

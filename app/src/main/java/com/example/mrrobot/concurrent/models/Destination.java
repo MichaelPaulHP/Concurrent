@@ -258,11 +258,16 @@ public class Destination extends BaseObservable {
 
     @Override
     public boolean equals(@Nullable Object obj) {
-        if(this==obj)
-            return true;
-        if(obj instanceof Destination){
-            Destination destination=(Destination)obj;
-            return destination.getId().equals(this.getId());
+        try{
+            if(this==obj)
+                return true;
+            if(obj instanceof Destination){
+                Destination destination=(Destination)obj;
+                return destination.getId().equals(this.getId());
+            }
+
+        }catch (NullPointerException e){
+            return false;
         }
         return false;
     }

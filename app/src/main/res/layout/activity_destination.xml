@@ -23,31 +23,6 @@
             android:layout_height="match_parent"
             android:orientation="vertical">
 
-            <RelativeLayout
-
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:layout_marginStart="40dp"
-                android:layout_marginTop="30dp"
-                android:layout_marginEnd="40dp">
-
-                <android.support.v7.widget.CardView
-
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
-                    app:cardBackgroundColor="?attr/color_secondary"
-                    app:cardCornerRadius="25dp">
-
-                    <ImageView
-
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:layout_gravity="center"
-                        android:src="@drawable/ic_location_on_black_24dp"
-                        android:tint="?attr/color_accent" />
-                </android.support.v7.widget.CardView>
-
-            </RelativeLayout>
 
             <!--SEARCH Destination and origin-->
             <LinearLayout
@@ -172,27 +147,20 @@
             <Button
                 android:id="@+id/btnBottomSheet"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="10dp"
                 android:background="@color/colorPrimary"
-                android:text="No Encontramos Resultados" />
+                android:text="--------" />
             <!--Recycler View: DestinationEntity -->
             <android.support.v7.widget.RecyclerView
 
                 android:id="@+id/rvDestinationsFound"
                 android:layout_width="match_parent"
-                android:layout_height="100dp"
+                android:layout_height="wrap_content"
 
                 android:orientation="horizontal"
                 android:scrollbars="horizontal">
 
             </android.support.v7.widget.RecyclerView>
-
-            <Button
-                android:id="@+id/btnReadyForJoined"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="?attr/color_accent"
-                android:text="Add To Join" />
 
         </LinearLayout>
 

@@ -80,7 +80,7 @@ public class DestinationActivity extends AppCompatActivity implements View.OnCli
         this.binding.btnMyDestination.setOnClickListener(this);
         this.binding.btnFindMyDestination.setOnClickListener(this);
         this.binding.btnFindMyOrigin.setOnClickListener(this);
-        this.binding.btnReadyForJoined.setOnClickListener(this);
+
 
         this.binding.btnSubmitDestination.setOnClickListener(this);
         this.recyclerViewDestinationsFound = this.binding.rvDestinationsFound;
@@ -169,37 +169,21 @@ public class DestinationActivity extends AppCompatActivity implements View.OnCli
                     @Override
                     public void run() {
 
-                        /*if(hasOriginAndDestination(aDestination)){
-
-                        }*/
                         if (hasDestination(aDestination) && aDestination.getName()!=null) {
-                            // set text
 
-                            //DestinationActivity.this.binding.btnMyDestination.setText(aDestination.getDestinationAddress());
-                            String latitude=aDestination.getDestination().getLatitude()+"";
-                            String longitude = aDestination.getDestination().getLongitude()+"";
-                            String text=latitude+"|"+longitude;
+                            String text=aDestination.getDestinationAddress();
                             DestinationActivity.this.binding.btnMyDestination.setText(text);
 
                             if (hasOrigin(aDestination)) {
-                                String latitudeO=aDestination.getOrigin().getLatitude()+"";
-                                String longitudeO = aDestination.getOrigin().getLongitude()+"";
-                                String textO=latitudeO+"|"+longitudeO;
+
+                                String textO=aDestination.getOriginAddress();
                                 DestinationActivity.this.binding.btnMyOrigin.setText(textO);
                                 showLayoutToJoin();
                                 showDestinationToJoin(aDestination, "Create");
-                                String distance=destinationViewModel.calculeDistance()+"";
-                                binding.btnReadyForJoined.setText(distance);
+
                             }
                         }
-                        /*if(hasOrigin(aDestination)){
 
-                        }*/
-
-
-                        //DestinationActivity.this.binding.viewStubDestinationSelected.getViewStub().inflate();
-
-                        //viewStub.getViewStub().inflate();
                     }
                 });
 
@@ -280,7 +264,8 @@ public class DestinationActivity extends AppCompatActivity implements View.OnCli
 
     private void onSubmit() {
         try {
-            this.destinationViewModel.OnSubmit();
+            Destination destination = this.binding.getDestinationSelected();
+            this.destinationViewModel.OnSubmit(destination);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -314,10 +299,7 @@ public class DestinationActivity extends AppCompatActivity implements View.OnCli
             case R.id.btnBottomSheet:
                 toggleBottomSheet();
                 break;
-            case R.id.btnReadyForJoined:
-                //this.destinationViewModel.setDestinationFoundToMyDestination();
-                //toggleBottomSheet();
-                break;
+
         }
     }
 
