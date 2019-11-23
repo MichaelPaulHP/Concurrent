@@ -63,8 +63,6 @@ public class UserEmitter {
             for (Destination destination : destinations) {
                 user.updateMyDestination(destination);
             }
-
-
         }
     };
 
@@ -111,4 +109,30 @@ public class UserEmitter {
         }
     };
 
+    public static void startListenerOnNewDestination(){
+        Socket socket = SocketIO.getSocket();
+        socket.on("newDestination", onNewDestination);
+    }
+
+    private static Emitter.Listener onNewDestination = new Emitter.Listener() {
+
+        @Override
+        public void call(Object... args) {
+
+            try {
+
+                JSONObject json = (JSONObject) args[0];
+                Gson gson = new Gson();
+                DestinationEntity destinationEntity = gson.fromJson(json.toString(), DestinationEntity.class);
+                Destination destination= new Destination(destinationEntity);
+
+                User userCurrent = User.getCurrentUser();
+                userCurrent.addMyDestination(destination);
+
+            } catch (Exception e) {
+                Timber.e(e);
+                throw e;
+            }
+        }
+    };
 }

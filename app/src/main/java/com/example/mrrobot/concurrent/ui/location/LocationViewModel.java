@@ -37,6 +37,7 @@ import com.mapbox.android.core.permissions.PermissionsManager;
 import com.mapbox.geojson.Feature;
 import com.mapbox.geojson.FeatureCollection;
 import com.mapbox.geojson.Point;
+import com.mapbox.mapboxsdk.camera.CameraPosition;
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
 import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.mapbox.mapboxsdk.location.modes.CameraMode;
@@ -213,10 +214,15 @@ public class LocationViewModel extends AndroidViewModel implements
         return fc;
     }
 
-    public void goToDestination(Destination destination) {
+    public void goLocation(Location location) {
 
-        LatLng latLng = destination.getDestinationLatLng();
-        this.mapboxMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
+        Double zoom = this.mapboxMap.getCameraPosition().zoom;
+        //this.mapboxMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
+        mapboxMap.animateCamera(CameraUpdateFactory.newCameraPosition(
+                new CameraPosition.Builder()
+                        .target(new LatLng(location))
+                        .zoom(zoom)
+                        .build()), 1000);
     }
 
 
@@ -266,10 +272,11 @@ public class LocationViewModel extends AndroidViewModel implements
     public void onDestinationClick(int position, View view) {
         User user = User.getCurrentUser();
         Destination destination = user.getMyDestinations().get(position);
+        hideDestinationPrevious();
         printDestination(destination);
         printParticipants(destination);
-        hideDestinationPrevious();
         setCurrentDestination(destination);
+        goLocation(destination.getOrigin());
     }
 
     private void onParticipantChangePosition(Destination destination, Participant participant) {
@@ -313,7 +320,7 @@ public class LocationViewModel extends AndroidViewModel implements
                 .setPriority(LocationEngineRequest.PRIORITY_HIGH_ACCURACY)
                 .setDisplacement(distance)
                 .setFastestInterval(min)
-                .setMaxWaitTime(min * 2)
+                .setMaxWaitTime(min)
                 .build();
 
         locationEngine.requestLocationUpdates(request, this, getMainLooper());

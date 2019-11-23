@@ -41,6 +41,8 @@ import com.mapbox.mapboxsdk.maps.MapView;
 
 import java.util.List;
 
+import timber.log.Timber;
+
 public class MainActivity extends AppCompatActivity
         implements PermissionsListener,
         View.OnClickListener {
@@ -225,16 +227,28 @@ public class MainActivity extends AppCompatActivity
     //////////////////////
     // LIFE CYCLE
     //////
+
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        Timber.d("onRestart");
+    }
+
     @Override
     public void onStart() {
         super.onStart();
         this.locationViewModel.mapView.onStart();
+        this.destinationAdapter.notifyNewDestinationInserted();
+        Timber.d("onStart");
+
     }
 
     @Override
     public void onResume() {
         super.onResume();
         this.locationViewModel.mapView.onResume();
+        Timber.d("onResume");
     }
 
     @Override

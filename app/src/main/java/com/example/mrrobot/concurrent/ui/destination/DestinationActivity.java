@@ -13,12 +13,15 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.DragEvent;
 import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.example.mrrobot.concurrent.R;
 import com.example.mrrobot.concurrent.Utils.IMessenger;
 import com.example.mrrobot.concurrent.databinding.ActivityDestinationBinding;
 import com.example.mrrobot.concurrent.models.Destination;
+import com.example.mrrobot.concurrent.models.User;
+import com.example.mrrobot.concurrent.models.UserEmitter;
 import com.example.mrrobot.concurrent.ui.home.DestinationAdapter;
 import com.google.android.gms.common.api.Status;
 import com.google.android.libraries.places.api.model.Place;
@@ -48,6 +51,7 @@ public class DestinationActivity extends AppCompatActivity implements View.OnCli
     public DestinationAdapter destinationAdapter;
     private BottomSheetBehavior sheetBehavior;
     private MapView mapView;
+    private ProgressBar progressBar;
 
 
     ///////////////////////////////////////////////////////
@@ -70,6 +74,7 @@ public class DestinationActivity extends AppCompatActivity implements View.OnCli
         this.destinationViewModel.initMapView(mapView, savedInstanceState);
 
         initUI();
+        UserEmitter.startListenerOnNewDestination();
     }
 
     private void initUI() {
@@ -80,7 +85,7 @@ public class DestinationActivity extends AppCompatActivity implements View.OnCli
         this.binding.btnMyDestination.setOnClickListener(this);
         this.binding.btnFindMyDestination.setOnClickListener(this);
         this.binding.btnFindMyOrigin.setOnClickListener(this);
-
+        this.progressBar =findViewById(R.id.formProgressBar);
 
         this.binding.btnSubmitDestination.setOnClickListener(this);
         this.recyclerViewDestinationsFound = this.binding.rvDestinationsFound;
@@ -89,7 +94,7 @@ public class DestinationActivity extends AppCompatActivity implements View.OnCli
         subscribeDestinationFound();
         subscribeMyDestinationTemp();
         subscribeHasResults();
-
+        subscribeHasNewDestination();
     }
 
     private void initBottomSheet() {
@@ -193,6 +198,20 @@ public class DestinationActivity extends AppCompatActivity implements View.OnCli
 
         //Destination.destinationSelected.observe(this, booleanObserver);
     }
+    private void subscribeHasNewDestination() {
+        final Observer<Destination> observer = new Observer<Destination>() {
+            @Override
+            public void onChanged(@Nullable final Destination aDestination) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        showProgressBar(false);showMessage("Complete");
+                    }
+                });
+            }
+        };
+        User.getCurrentUser().hasNewDestination.observe(this,observer);
+    }
 
     private void showDestinationToJoin(Destination destination, String text) {
         this.binding.setDestinationSelected(destination);
@@ -206,13 +225,6 @@ public class DestinationActivity extends AppCompatActivity implements View.OnCli
     private boolean hasDestination(Destination destination) {
         return destination.getDestination() != null;
     }
-
-    private boolean hasOriginAndDestination(Destination destination) {
-        boolean origin = destination.getOrigin() != null;
-        boolean des = destination.getDestination() != null;
-        return origin && des;
-    }
-
 
     private void initRecyclerViewOfDestinations() {
 
@@ -264,19 +276,23 @@ public class DestinationActivity extends AppCompatActivity implements View.OnCli
 
     private void onSubmit() {
         try {
+            showProgressBar(true);
             Destination destination = this.binding.getDestinationSelected();
             this.destinationViewModel.OnSubmit(destination);
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        // close activity
-        // Todo: go back (main activity)
+
     }
 
     private void showLayoutToJoin() {
         this.binding.layoutToDestination.setVisibility(View.VISIBLE);
     }
-
+    private void showProgressBar(Boolean show) {
+        this.progressBar.setVisibility(show ? View.VISIBLE : View.GONE);
+        if( this.binding.layoutToDestination.getVisibility()==View.VISIBLE)
+            findViewById(R.id.btnSubmitDestination).setVisibility(show ? View.GONE : View.VISIBLE);
+    }
     @Override
     public void onClick(View view) {
         int id = view.getId();
@@ -305,16 +321,19 @@ public class DestinationActivity extends AppCompatActivity implements View.OnCli
 
     @Override
     public void onError(String message) {
+        showProgressBar(false);
         showMessage(message);
     }
 
     @Override
     public void OnWarning(String message) {
+        showProgressBar(false);
         showMessage(message);
     }
 
     @Override
     public void onSuccess(String message) {
+        showProgressBar(false);
         showMessage(message);
     }
 

@@ -79,13 +79,15 @@ public class User extends Participant implements IUser {
             this.myDestinations.add(destination);
             hasNewDestination.postValue(destination);
         }
+        else{
+            destinationMemory.setNumUsers(destination.getNumUsers());
+        }
     }
 
     public void updateMyDestination(Destination destination){
         Destination myDestination=findDestinationById(destination.getId());
-        if(myDestination==null)
-            return;
-        myDestination.setNumUsers(destination.getNumUsers());
+        if(myDestination!=null)
+            myDestination.setNumUsers(destination.getNumUsers());
     }
 
     public boolean isMyDestination(String id){

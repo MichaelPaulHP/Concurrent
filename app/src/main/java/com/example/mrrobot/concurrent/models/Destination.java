@@ -171,31 +171,6 @@ public class Destination extends BaseObservable {
     }
 
     public void setOriginAddress(String name) {
-
-        String newName;
-        if (entity.name != null) {
-            String[] split = this.entity.name.split(ADDRESS_SEPARATOR,2);
-            newName = name + ADDRESS_SEPARATOR + split[1];
-        } else {
-            newName = name + ADDRESS_SEPARATOR;
-        }
-        setName(newName);
-    }
-    public String getOriginAddress(){
-        if(this.getName()!=null) {
-            String name = getName().split(ADDRESS_SEPARATOR,2)[0];
-            return name.isEmpty()? null:name;
-        }
-        return null;
-    }
-    public String getDestinationAddress(){
-        if(this.getName()!=null) {
-            String name = getName().split(ADDRESS_SEPARATOR,2)[1];
-            return name.isEmpty()? null:name;
-        }
-        return null;
-    }
-    public void setDestinationAddress(String name) {
         String newName;
         if (entity.name != null) {
             String[] split = this.entity.name.split(ADDRESS_SEPARATOR,2);
@@ -205,6 +180,31 @@ public class Destination extends BaseObservable {
         }
         setName(newName);
 
+    }
+    public String getOriginAddress(){
+        if(this.getName()!=null) {
+            String name = getName().split(ADDRESS_SEPARATOR,2)[1];
+            return name.isEmpty()? null:name;
+        }
+        return null;
+    }
+    public String getDestinationAddress(){
+        if(this.getName()!=null) {
+            String name = getName().split(ADDRESS_SEPARATOR,2)[0];
+            return name.isEmpty()? null:name;
+        }
+        return null;
+    }
+
+    public void setDestinationAddress(String name) {
+        String newName;
+        if (entity.name != null) {
+            String[] split = this.entity.name.split(ADDRESS_SEPARATOR,2);
+            newName = name + ADDRESS_SEPARATOR + split[1];
+        } else {
+            newName = name + ADDRESS_SEPARATOR;
+        }
+        setName(newName);
     }
 
     public Location getOrigin() {
