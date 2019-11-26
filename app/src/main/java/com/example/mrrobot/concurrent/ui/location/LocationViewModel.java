@@ -16,6 +16,7 @@ import android.support.annotation.NonNull;
 import android.view.View;
 
 import com.example.mrrobot.concurrent.Config.MapBox;
+import com.example.mrrobot.concurrent.MainActivity;
 import com.example.mrrobot.concurrent.R;
 import com.example.mrrobot.concurrent.Services.SocketIO;
 import com.example.mrrobot.concurrent.Utils.DestinationSymbol;
@@ -49,6 +50,7 @@ import com.mapbox.mapboxsdk.location.LocationComponent;
 import com.mapbox.mapboxsdk.maps.Style;
 import com.mapbox.mapboxsdk.plugins.annotation.Symbol;
 import com.mapbox.mapboxsdk.style.layers.Layer;
+import com.mapbox.mapboxsdk.style.layers.PropertyFactory;
 import com.mapbox.mapboxsdk.style.layers.SymbolLayer;
 import com.mapbox.mapboxsdk.style.sources.GeoJsonSource;
 import com.mapbox.mapboxsdk.style.sources.Source;
@@ -56,6 +58,7 @@ import com.mapbox.mapboxsdk.utils.BitmapUtils;
 
 import static com.mapbox.mapboxsdk.style.layers.Property.NONE;
 import static com.mapbox.mapboxsdk.style.layers.Property.VISIBLE;
+import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconOffset;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.visibility;
 
 import org.json.JSONException;
@@ -95,6 +98,7 @@ public class LocationViewModel extends AndroidViewModel implements
 
     private static final String ICON_PLACE = "ic-place";
     private static final String ICON_PITCH = "ic-pitch";
+    public IListener listenerActivity;
     //////////////////////////////
     ///////////METHODS
     /////////
@@ -132,7 +136,7 @@ public class LocationViewModel extends AndroidViewModel implements
                 configSymbolManager(style);
                 //createASymbolLayer(style,"layerUno","casa",getApplication().getApplicationContext());
                 //createPoint(style);
-
+                temp();
             }
         });
     }
@@ -168,10 +172,11 @@ public class LocationViewModel extends AndroidViewModel implements
     private void printParticipants(Destination destination) {
 
         if (existLayer(destination.getId())) {
-            updateSource(destination);
+            listenerActivity.updateSource(destination);
+            //updateSource(destination);
             setVisibleToLayer(destination.getId());
         } else {
-            createASymbolLayer(destination);
+            createASymbolLayerWithSource(destination);
         }
     }
 
@@ -184,19 +189,44 @@ public class LocationViewModel extends AndroidViewModel implements
         Layer layer = this.mapboxMap.getStyle().getLayer(id);
         layer.setProperties(visibility(VISIBLE));
     }
+    private void temp(){
+        List<Feature> symbolLayerIconFeatureList = new ArrayList<>();
+        symbolLayerIconFeatureList.add(Feature.fromGeometry(
+                Point.fromLngLat(-71.545707, -16.429366)));
+        symbolLayerIconFeatureList.add(Feature.fromGeometry(
+                Point.fromLngLat(-16.429366, -71.545707)));
+        symbolLayerIconFeatureList.add(Feature.fromGeometry(
+                Point.fromLngLat(-56.990533, -30.583266)));
+        Source source = new GeoJsonSource("IDdd",
+                FeatureCollection.fromFeatures(symbolLayerIconFeatureList));
+        this.style.addSource(source);
 
+        /*iconColor(destination.getColor()),
+                iconImage(ICON_PITCH),
+                iconAllowOverlap(true),
+                iconOffset(new Float[]{0f, -9f})*/
+        SymbolLayer symbolLayer = new SymbolLayer("IDdd", "IDdd");
+        symbolLayer.withProperties(PropertyFactory.iconImage(ICON_PITCH),
+                iconAllowOverlap(true),
+                iconOffset(new Float[] {0f, -9f})
+        );
+        style.addLayer(symbolLayer);
+    }
     // -16.429366, -71.545707
-    private void createASymbolLayer(Destination destination) {
+    private void createASymbolLayerWithSource(Destination destination) {
         String id = destination.getId();
 
         Source source = createSourceOfDestination(destination);
         this.style.addSource(source);
 
-
+        /*iconColor(destination.getColor()),
+                iconImage(ICON_PITCH),
+                iconAllowOverlap(true),
+                iconOffset(new Float[]{0f, -9f})*/
         SymbolLayer symbolLayer = new SymbolLayer(id, id);
-        symbolLayer.withProperties(
-                iconColor(destination.getColor()),
-                iconImage(ICON_PITCH)
+        symbolLayer.withProperties(PropertyFactory.iconImage(ICON_PITCH),
+                iconAllowOverlap(true),
+                iconOffset(new Float[] {0f, -9f})
         );
         style.addLayer(symbolLayer);
     }
@@ -226,12 +256,13 @@ public class LocationViewModel extends AndroidViewModel implements
     }
 
 
-    private void updateSource(Destination destination) {
+    public void updateSource(Destination destination) {
         String sourceId = destination.getId();
         GeoJsonSource spaceStationSource = this.style.getSourceAs(sourceId);
 
         if (spaceStationSource != null) {
             FeatureCollection featureCollection = getFeatureCollectionOfDestination(destination);
+
             spaceStationSource.setGeoJson(featureCollection);
             /*spaceStationSource.setGeoJson(FeatureCollection.fromFeature(
                     Feature.fromGeometry(Point.fromLngLat(position.getLongitude(), position.getLatitude()))
@@ -282,13 +313,20 @@ public class LocationViewModel extends AndroidViewModel implements
     private void onParticipantChangePosition(Destination destination, Participant participant) {
         Destination currentDestination = this.currentDestination.getValue();
         if (currentDestination != null && currentDestination.equals(destination))
-            updateSource(destination);
+            this.listenerActivity.updateSource(destination);
+            //updateSource(destination);
     }
 
     @Override
     public void emitParticipantChange(Destination destination, Participant participant) {
         onParticipantChangePosition(destination, participant);
     }
+
+    @Override
+    public void emitNewParticipant(Destination destination, Participant participant) {
+        onParticipantChangePosition(destination, participant);
+    }
+
 
     @SuppressLint("MissingPermission")
     private void enableLocationComponent() {
@@ -379,11 +417,19 @@ public class LocationViewModel extends AndroidViewModel implements
                             resources.getDrawable(R.drawable.ic_location_on_black_24dp));
             Bitmap bitmapPitch = BitmapUtils
                     .getBitmapFromDrawable(
-                            resources.getDrawable(R.drawable.ic_pitch_15));
+                            resources.getDrawable(R.drawable.ic_user_whole_body_large));
+            Bitmap bitmap2 = BitmapUtils
+                    .getBitmapFromDrawable(
+                            resources.getDrawable(R.drawable.ic_markerii_15));
 
+            style.addImage("ic-place-destination", bitmap2, true);
             style.addImage(ICON_PLACE, bitmap1, true);
             style.addImage(ICON_PITCH, bitmapPitch, true);
         }
+    }
+    public interface IListener{
+
+        void updateSource(Destination destination);
     }
 }
 

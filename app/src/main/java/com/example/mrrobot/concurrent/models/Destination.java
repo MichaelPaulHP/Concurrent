@@ -8,6 +8,7 @@ import android.location.Location;
 import android.support.annotation.Nullable;
 import android.widget.ImageView;
 
+import com.example.mrrobot.concurrent.BR;
 import com.example.mrrobot.concurrent.Firebase.DB.ChatData;
 import com.example.mrrobot.concurrent.Utils.RandomColors;
 import com.example.mrrobot.concurrent.entityes.DestinationEntity;
@@ -18,6 +19,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
@@ -37,7 +39,7 @@ public class Destination extends BaseObservable {
     private IListener listener;
 
     private List<Participant> participants = new ArrayList<>();
-
+    private HashMap<String,Feature> features=new HashMap<>();
 
     public Destination(String userId) {
 
@@ -61,14 +63,7 @@ public class Destination extends BaseObservable {
                 entity.destinationLatitude,
                 entity.destinationLongitude);
     }
-    public List<Feature> getFeatures(){
-        List<Feature> features= new ArrayList<>();
-        for (Participant participant : this.participants) {
-            Feature feature = participant.getFeature();
-            features.add(feature);
-        }
-        return features;
-    }
+
 
     private Location createLocation(Double latitude, Double longitude) {
         Location location = new Location("");
@@ -76,16 +71,18 @@ public class Destination extends BaseObservable {
         location.setLongitude(longitude);
         return location;
     }
-
+    public List<Feature> getFeatures(){
+        return new ArrayList<>(features.values());
+    }
 
 
     public void setParticipant(Participant aParticipant){
 
         Participant  participant= this.findParticipant(aParticipant);
-        updateParticipant(participant,aParticipant);
-        
-        this.listener.emitParticipantChange(this,participant);
-
+        if(participant==null)
+            this.addParticipant(aParticipant);
+        else
+            updateParticipant(participant,aParticipant);
     }
 
     public Participant findParticipant(Participant aParticipant){
@@ -98,10 +95,24 @@ public class Destination extends BaseObservable {
     }
 
     private void updateParticipant(Participant target,Participant newParticipant){
-        target=newParticipant;
-
+        target.set(newParticipant);
+        Feature feature= target.getFeature();
+        this.features.put(target.getGoogleId(),feature);
+        if(hasListener())
+            this.listener.emitParticipantChange(this,target);
     }
 
+    private void addParticipant(Participant participant){
+        this.participants.add(participant);
+        Feature feature = participant.getFeature();
+        this.features.put(participant.getGoogleId(),feature);
+        if(hasListener())
+            this.listener.emitNewParticipant(this,participant);
+    }
+
+    private boolean hasListener(){
+        return this.listener!=null;
+    }
     public boolean isOwn() {
 
         if (this.entity.destinationId == null)
@@ -145,7 +156,7 @@ public class Destination extends BaseObservable {
 
     public void setNumUsers(int numUsers) {
         entity.numUsers = numUsers;
-        //notifyPropertyChanged(BR.numUsers);
+        notifyPropertyChanged(com.example.mrrobot.concurrent.BR.numUsers);
     }
     public String createBy(){
         return entity.userId;
@@ -275,6 +286,7 @@ public class Destination extends BaseObservable {
     public interface IListener {
 
         void emitParticipantChange(Destination destination,Participant participant);
+        void emitNewParticipant(Destination destination,Participant participant);
         //void onSelected(Destination destination);
         //void goToDestination(Destination destination);
     }

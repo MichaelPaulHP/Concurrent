@@ -4,10 +4,8 @@ import android.arch.lifecycle.MutableLiveData;
 import android.os.AsyncTask;
 import android.util.Log;
 
-import com.example.mrrobot.concurrent.models.Destination;
 import com.example.mrrobot.concurrent.models.Localization;
 import com.example.mrrobot.concurrent.models.User;
-import com.mapbox.mapboxsdk.geometry.LatLng;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -45,7 +43,7 @@ public class SocketIO {
         try {
 
             jsonObject.put("userName", user.getName());
-            jsonObject.put("userId", user.getIdGoogle());
+            jsonObject.put("userId", user.getGoogleId());
             Socket socket = getSocket();
             socket.emit("init", jsonObject);
         } catch (JSONException e) {
@@ -66,7 +64,7 @@ public class SocketIO {
             jsonObject.put("name", localization.getName());
             jsonObject.put("latitude", localization.getLatitude()+"");
             jsonObject.put("longitude", localization.getLongitude()+"");
-            jsonObject.put("userID", User.getCurrentUser().getIdGoogle());
+            jsonObject.put("userID", User.getCurrentUser().getGoogleId());
             socket.emit("myLocalizationChange", jsonObject);
         } catch (JSONException e) {
             Log.d("JSONException", e.getMessage());

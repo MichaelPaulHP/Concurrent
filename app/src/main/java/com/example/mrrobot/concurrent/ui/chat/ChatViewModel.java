@@ -16,9 +16,6 @@ import com.stfalcon.chatkit.commons.ImageLoader;
 import com.stfalcon.chatkit.messages.MessageInput;
 import com.stfalcon.chatkit.messages.MessagesListAdapter;
 
-import java.util.Calendar;
-import java.util.Random;
-
 public class ChatViewModel extends AndroidViewModel implements
         MessageInput.InputListener,
         MessageInput.AttachmentsListener,
@@ -60,7 +57,7 @@ public class ChatViewModel extends AndroidViewModel implements
 
     private void initMessagesAdapter() {
         initImageLoader();
-        this.messagesAdapter = new MessagesListAdapter<>(this.user.getIdGoogle(), imageLoader);
+        this.messagesAdapter = new MessagesListAdapter<>(this.user.getGoogleId(), imageLoader);
 
 //        messagesAdapter.enableSelectionMode(this);
 //        messagesAdapter.setLoadMoreListener(this);

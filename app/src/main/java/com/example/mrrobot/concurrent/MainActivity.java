@@ -21,6 +21,7 @@ import android.widget.TextView;
 
 import com.example.mrrobot.concurrent.Firebase.Auth;
 import com.example.mrrobot.concurrent.Services.SocketIO;
+import com.example.mrrobot.concurrent.Utils.IMessenger;
 import com.example.mrrobot.concurrent.lib.SmartFragmentStatePagerAdapter;
 import com.example.mrrobot.concurrent.models.Destination;
 import com.example.mrrobot.concurrent.models.Localization;
@@ -45,7 +46,7 @@ import timber.log.Timber;
 
 public class MainActivity extends AppCompatActivity
         implements PermissionsListener,
-        View.OnClickListener {
+        View.OnClickListener, LocationViewModel.IListener {
 
 
     final String apiKey = "AIzaSyCE6yWse7ECNMN5q7XRxuQ8ihyU8QuqrdY";
@@ -75,6 +76,7 @@ public class MainActivity extends AppCompatActivity
         LocationViewModel.requestLocationPermissions(getApplicationContext(), this, this);
         // associate the activity with a ViewModel
         this.locationViewModel = ViewModelProviders.of(this).get(LocationViewModel.class);
+        this.locationViewModel.listenerActivity=this;
         this.homeViewModel = ViewModelProviders.of(this).get(HomeViewModel.class);
 
         //
@@ -89,12 +91,14 @@ public class MainActivity extends AppCompatActivity
         PlacesClient placesClient = Places.createClient(this);
 
         initUI();
+        //setListenersToDestinations();
     }
 
     private void initUI() {
 
         findViewById(R.id.optionsTop).bringToFront();
         findViewById(R.id.optionsBot).bringToFront();
+        findViewById(R.id.optionsExtra).bringToFront();
         this.progressBar = (ProgressBar) findViewById(R.id.mainProgressBar);
 
         findViewById(R.id.btnTest).setOnClickListener(this);
@@ -106,7 +110,7 @@ public class MainActivity extends AppCompatActivity
 
 
         subscribeToHasNewDestination();
-        subscribeConnectTask();
+
     }
 
 
@@ -120,32 +124,13 @@ public class MainActivity extends AppCompatActivity
                     @Override
                     public void run() {
                         MainActivity.this.destinationAdapter.notifyNewDestinationInserted();
+                        destination.setListener(MainActivity.this.locationViewModel);
                         //destination.setDestinationListener(locationViewModel);
                     }
                 });
-
             }
         };
         User.getCurrentUser().hasNewDestination.observe(this, newDestinationObserver);
-
-    }
-
-    private void subscribeConnectTask() {
-
-        final Observer<Boolean> observer = new Observer<Boolean>() {
-            @Override
-            public void onChanged(@Nullable final Boolean isConnected) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        showProgressBar(!isConnected);
-                    }
-                });
-
-            }
-        };
-
-        SocketIO.isConnected.observe(this, observer);
 
     }
 
@@ -162,7 +147,6 @@ public class MainActivity extends AppCompatActivity
         destinationAdapter.setEventListener(this.locationViewModel);
         destinationAdapter.setDestinations(User.getCurrentUser().getMyDestinations());
         this.recyclerViewListDestinations.setAdapter(destinationAdapter);
-
 
     }
 
@@ -209,6 +193,24 @@ public class MainActivity extends AppCompatActivity
         //this.destinationFragment.show(ft,"QWEQW");
     }
 
+    private void setListenersToDestinations(){
+        this.destinationAdapter.notifyNewDestinationInserted();
+        for (Destination destination : User.getCurrentUser().getMyDestinations()) {
+            destination.setListener(locationViewModel);
+        }
+    }
+
+    @Override
+    public void updateSource(final Destination  destination) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                MainActivity.this.locationViewModel.updateSource(destination);
+                //destination.setDestinationListener(locationViewModel);
+            }
+        });
+    }
+
     ////////////////////////
     // GPS Permission Listener
 
@@ -239,7 +241,7 @@ public class MainActivity extends AppCompatActivity
     public void onStart() {
         super.onStart();
         this.locationViewModel.mapView.onStart();
-        this.destinationAdapter.notifyNewDestinationInserted();
+        //setListenersToDestinations();
         Timber.d("onStart");
 
     }
@@ -281,6 +283,7 @@ public class MainActivity extends AppCompatActivity
     //////////
     // End LIFE CYCLE
     ///////////////////////////////////////////////////
+
 
 
 }

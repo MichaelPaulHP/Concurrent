@@ -11,7 +11,6 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,7 +29,7 @@ public class MessageData {
         this.createAtLong = message.getCreatedAt().getTime();
         this.text = message.getText();
         User user= (User) message.getUser();
-        this.userId = user.getIdGoogle();
+        this.userId = user.getGoogleId();
         this.userName = message.getUser().getName();
     }
 

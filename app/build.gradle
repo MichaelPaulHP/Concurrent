@@ -5,10 +5,11 @@ android {
     compileSdkVersion 28
     defaultConfig {
         applicationId "com.example.mrrobot.concurrent"
-        minSdkVersion 21
+        minSdkVersion 19
         targetSdkVersion 28
         versionCode 1
         versionName "1.0"
+        multiDexEnabled true
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -60,4 +61,8 @@ dependencies {
         implementation 'com.google.code.gson:gson:2.8.6'
     }
     implementation 'com.squareup.retrofit2:retrofit:2.6.2'
+
+
+    implementation 'com.android.support:multidex:1.0.3'
+
 }

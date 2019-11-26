@@ -23,7 +23,7 @@ public class HomeViewModel extends AndroidViewModel {
         UserEmitter.requestMyDestinations();
         //requestMyDestinations();
         UserEmitter.startListenerJoinMyDestinations();
-
+        UserEmitter.startListenerOnChangeLocation();
     }
 
 

@@ -35,8 +35,8 @@ public class User extends Participant implements IUser {
     private static User USER_CURRENT;
 
     private String id;
-    private String idGoogle;
-    private String name;
+
+
     private String avatar;
     private Double numChats = 0.0;
 
@@ -48,11 +48,12 @@ public class User extends Participant implements IUser {
     public MutableLiveData<Location> myLocation = new MutableLiveData<>();
     public IUserListeners userListeners;
     //public Chat.IChatListener chatListener;
+    public Destination.IListener destinationListener;
 
-    public User(String id, String idGoogle, String name, String avatar) {
+    public User(String id, String googleId, String name, String avatar) {
         this.id = id;
-        this.idGoogle = idGoogle;
-        this.name = name;
+        this.googleId = googleId;
+        this.userName = name;
         this.avatar = avatar;
     }
 
@@ -114,7 +115,11 @@ public class User extends Participant implements IUser {
     }
 
 
-
+    public void emitMyLocation(){
+        Location location =this.myLocation.getValue();
+        if(location!=null)
+            UserEmitter.emitChangeMyLocation();
+    }
 
 
     ///////////////////////////////////////////////////////
@@ -189,22 +194,13 @@ public class User extends Participant implements IUser {
 
             chat.initListenerForNewMessagesFromDB();
         }
+
     }
-
-
-
 
     public Double getNumChats() {
         return numChats;
     }
 
-    public String getIdGoogle() {
-        return idGoogle;
-    }
-
-    public void setIdGoogle(String idGoogle) {
-        this.idGoogle = idGoogle;
-    }
 
     public List<Destination> getMyDestinations() {
         return myDestinations;
@@ -227,7 +223,7 @@ public class User extends Participant implements IUser {
      */
     @Override
     public String getName() {
-        return this.name;
+        return this.userName;
     }
 
     /**

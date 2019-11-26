@@ -100,7 +100,7 @@ public class ChatData {
 //
 //
 //        chatSaved.setKey(idChat);
-//        chatSaved.setCreatedBy(user.getIdGoogle());
+//        chatSaved.setCreatedBy(user.getGoogleId());
 //        chatSaved.setCreatedAt(Chat.getNowDate());
 //        chatSaved.addParticipant(user); // user is participant
 //        ChatData chatData = new ChatData(chatSaved);
@@ -128,7 +128,7 @@ public class ChatData {
 //                            }
 //                        });
 //
-//                        toUpdate.put("RoomsChat/Users/"+user.getIdGoogle()+"/", user.toMap());
+//                        toUpdate.put("RoomsChat/Users/"+user.getGoogleId()+"/", user.toMap());
 //
 //                        dbReferenceChats.updateChildren(toUpdate).addOnSuccessListener(new OnSuccessListener<Void>() {
 //                            @Override

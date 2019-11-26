@@ -23,7 +23,6 @@
             android:layout_height="match_parent"
             android:orientation="vertical">
 
-
             <!--SEARCH Destination and origin-->
             <LinearLayout
                 android:id="@+id/layoutSearch"
@@ -32,6 +31,7 @@
                 android:layout_marginTop="90dp"
                 android:gravity="top|center"
                 android:orientation="vertical">
+
 
                 <LinearLayout
                     android:layout_width="wrap_content"
@@ -42,14 +42,19 @@
                         android:id="@+id/btnMyOrigin"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:drawableStart="@drawable/ic_location_on_black_24dp"
+                        android:background="#FFFFFF"
                         android:text="Origin" />
 
                     <Button
                         android:id="@+id/btnFindMyOrigin"
-                        android:layout_width="48dp"
-                        android:layout_height="wrap_content"
-                        android:drawableStart="@drawable/ic_search_black_24dp" />
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:background="#222324"
+                        android:drawableEnd="@drawable/ic_search_black_24dp" />
                 </LinearLayout>
+
+
 
                 <LinearLayout
                     android:layout_width="wrap_content"
@@ -59,12 +64,15 @@
                         android:id="@+id/btnMyDestination"
                         android:layout_width="wrap_content"
                         android:layout_height="50dp"
+                        android:background="#FFFFFF"
+                        android:drawableStart="@drawable/ic_marker_15"
                         android:text="@string/direction_destination" />
 
                     <Button
                         android:id="@+id/btnFindMyDestination"
-                        android:layout_width="48dp"
-                        android:layout_height="wrap_content"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:background="#222324"
                         android:drawableStart="@drawable/ic_search_black_24dp" />
 
                 </LinearLayout>
@@ -129,6 +137,8 @@
                     android:layout_height="40dp"
                     android:layout_centerHorizontal="true"
                     android:layout_centerVertical="true"
+                    android:background="#222324"
+                    android:textColor="@color/colorPrimary"
                     android:text="unirse"
                     android:visibility="visible" />
 
@@ -153,16 +163,18 @@
             <Button
                 android:id="@+id/btnBottomSheet"
                 android:layout_width="match_parent"
-                android:layout_height="10dp"
+                android:layout_height="30dp"
                 android:background="@color/colorPrimary"
-                android:text="--------" />
+                android:drawableStart="@drawable/ic_results_list_large"
+                 />
             <!--Recycler View: DestinationEntity -->
             <android.support.v7.widget.RecyclerView
 
                 android:id="@+id/rvDestinationsFound"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-
+                app:stackFromEnd="true"
+                app:reverseLayout="true"
                 android:orientation="horizontal"
                 android:scrollbars="horizontal">
 

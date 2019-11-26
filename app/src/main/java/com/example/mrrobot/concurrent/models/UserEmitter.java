@@ -21,7 +21,7 @@ public class UserEmitter {
         User user = User.getCurrentUser();
         socket.on("myDestinations", onGetMyDestinations);//getMyDestinations
 
-        socket.emit("getMyDestinations", Utils.toJsonObject("userId", user.getIdGoogle()));
+        socket.emit("getMyDestinations", Utils.toJsonObject("userId", user.getGoogleId()));
 
     }
 
@@ -39,7 +39,7 @@ public class UserEmitter {
                     user.addMyDestination(destination);
                 }
                 //destination.setDestinationListener(HomeViewModel.this);
-                UserEmitter.startListenerOnChangeLocation();
+
             } catch (Exception e) {
                 Timber.e(e);
                 throw e;
@@ -69,7 +69,7 @@ public class UserEmitter {
     public static void emitChangeMyLocation() {
         try {
 
-            Participant participant = (Participant) User.getCurrentUser();
+            Participant participant =  User.getCurrentUser();
             Gson gson = new Gson();
             String participantJson = gson.toJson(participant, Participant.class);
 
@@ -100,7 +100,8 @@ public class UserEmitter {
                 String id = participant.getDestinationId();
                 User userCurrent = User.getCurrentUser();
                 Destination destination = userCurrent.findDestinationById(id);
-                destination.setParticipant(participant);
+                if(destination!=null)
+                    destination.setParticipant(participant);
 
             } catch (Exception e) {
                 Timber.e(e);

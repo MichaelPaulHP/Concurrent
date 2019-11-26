@@ -6,6 +6,7 @@ import com.mapbox.mapboxsdk.plugins.annotation.Symbol;
 public class DestinationSymbol {
 
     private static final String ICON_PLACE = "ic-place";
+    private static final String ICON_PLACE_DESTINATION = "ic-place-destination";
 
     private SymbolPrinter symbolPrinter;
     private Destination destination;
@@ -32,7 +33,7 @@ public class DestinationSymbol {
                     destinationSymbol,
                     destination.getDestinationLatLng(),
                     destination.getColor(),
-                    ICON_PLACE);
+                    ICON_PLACE_DESTINATION);
         }
     }
 

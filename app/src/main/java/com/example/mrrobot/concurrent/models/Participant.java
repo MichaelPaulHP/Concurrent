@@ -12,30 +12,43 @@ import java.util.HashMap;
 
 public class Participant {
 
-    private String googleId;
-    private String userName;
+    protected String googleId;
+    protected String userName;
 
     private String destinationId;
 
     private double latitude;
     private double longitude;
     private double altitude;
-
+    private Feature feature;
 
     public Feature getFeature(){
+        if(this.feature==null)
+            buildFeature();
+        return feature;
+    }
+
+    public void set(Participant participant)
+    {
+        this.latitude=participant.latitude;
+        this.latitude=participant.longitude;
+        this.altitude=participant.altitude;
+        buildFeature();
+    }
+
+    private void buildFeature(){
         Geometry geometry= Point.fromLngLat(this.longitude,this.latitude);
         String id=this.googleId;
         JsonObject jsonObject= new JsonObject();
         jsonObject.addProperty("googleId",id);
         jsonObject.addProperty("userName",this.userName);
-        Feature feature = Feature.fromGeometry(geometry, jsonObject, id);
-        return feature;
+        this.feature = Feature.fromGeometry(geometry, jsonObject, id);
     }
-
 
     @Override
     public boolean equals(@Nullable Object obj) {
-
+        if(this==obj)
+            return true;
         if(obj instanceof Participant){
             Participant participant=(Participant)obj;
             return participant.googleId.equals(this.googleId);

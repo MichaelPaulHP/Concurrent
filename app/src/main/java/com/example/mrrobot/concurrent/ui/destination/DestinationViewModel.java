@@ -6,13 +6,11 @@ import android.arch.lifecycle.MutableLiveData;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.util.Log;
 import android.view.View;
 
 import com.example.mrrobot.concurrent.Config.MapBox;
@@ -38,7 +36,6 @@ import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 import com.mapbox.mapboxsdk.maps.Style;
 import com.mapbox.mapboxsdk.plugins.annotation.OnSymbolDragListener;
 import com.mapbox.mapboxsdk.plugins.annotation.Symbol;
-import com.mapbox.mapboxsdk.plugins.annotation.SymbolManager;
 import com.mapbox.mapboxsdk.utils.BitmapUtils;
 
 import org.json.JSONException;
@@ -79,6 +76,7 @@ public class DestinationViewModel extends AndroidViewModel
 
 
     private static final String ICON_PLACE = "ic-place";
+    private static final String ICON_PLACE_DESTINATION = "ic-place-destination";
 
     private IMessenger messenger;
 
@@ -135,13 +133,16 @@ public class DestinationViewModel extends AndroidViewModel
     private void addIcon(Style style) {
         Resources resources = getApplication().getApplicationContext().getResources();
         if (resources != null) {
-            Bitmap bitmap = BitmapFactory.decodeResource(
-                    resources, R.drawable.ic_place);
+
 
             Bitmap bitmap1 = BitmapUtils
                     .getBitmapFromDrawable(
                             resources.getDrawable(R.drawable.ic_location_on_black_24dp));
+            Bitmap bitmap2 = BitmapUtils
+                    .getBitmapFromDrawable(
+                            resources.getDrawable(R.drawable.ic_markerii_15));
 
+            style.addImage(ICON_PLACE_DESTINATION, bitmap2, true);
             style.addImage(ICON_PLACE, bitmap1, true);
         }
     }
@@ -151,9 +152,10 @@ public class DestinationViewModel extends AndroidViewModel
         this.origin = getMyLocation();
         if (this.origin != null) {
 
-            this.myDestinationTemp = new Destination(User.getCurrentUser().getIdGoogle());
+            this.myDestinationTemp = new Destination(User.getCurrentUser().getGoogleId());
             this.myDestinationTemp.initMutableLiveData();
             this.myDestinationTemp.setOrigin(this.origin);
+
         }
     }
 
@@ -340,7 +342,7 @@ public class DestinationViewModel extends AndroidViewModel
                     messenger.OnWarning("You are in this Destination");
                 } else {
                     // this user join to destination
-                    DestinationData.addParticipant(destinationSelected.getId(), current.getIdGoogle());
+                    DestinationData.addParticipant(destinationSelected.getId(), current.getGoogleId());
                 }
             }
         }

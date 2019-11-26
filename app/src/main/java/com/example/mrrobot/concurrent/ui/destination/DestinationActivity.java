@@ -174,6 +174,13 @@ public class DestinationActivity extends AppCompatActivity implements View.OnCli
                     @Override
                     public void run() {
 
+
+                        if (hasOrigin(aDestination)) {
+
+                            String textO=aDestination.getOriginAddress();
+                            DestinationActivity.this.binding.btnMyOrigin.setText(textO);
+                        }
+
                         if (hasDestination(aDestination) && aDestination.getName()!=null) {
 
                             String text=aDestination.getDestinationAddress();
@@ -188,6 +195,7 @@ public class DestinationActivity extends AppCompatActivity implements View.OnCli
 
                             }
                         }
+
 
                     }
                 });

@@ -1,23 +1,12 @@
 package com.example.mrrobot.concurrent.Firebase.DB;
 
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.util.Log;
-
 import com.example.mrrobot.concurrent.models.Chat;
 import com.example.mrrobot.concurrent.models.User;
-import com.google.android.gms.tasks.OnCanceledListener;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
-import com.google.firebase.database.ChildEventListener;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,7 +22,7 @@ public class UserData {
 
     public UserData(User user) {
         this.avatar = user.getAvatar();
-        this.idGoogle = user.getIdGoogle();
+        this.idGoogle = user.getGoogleId();
         this.name = user.getName();
         this.numChats=user.getNumChats();
     }
@@ -48,13 +37,13 @@ public class UserData {
         dbReferenceMessages = database.getReference("/RoomsChat/Users");
 
         UserData userData = new UserData(user);
-        return dbReferenceMessages.child(user.getIdGoogle()).setValue(userData);
+        return dbReferenceMessages.child(user.getGoogleId()).setValue(userData);
     }
 
     public static Task<Void> addChat(final User user,final Chat chat){
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         DatabaseReference dbReferenceChat;
-        dbReferenceChat = database.getReference("/RoomsChat/Users/"+user.getIdGoogle()+"/myChats");
+        dbReferenceChat = database.getReference("/RoomsChat/Users/"+user.getGoogleId()+"/myChats");
 
 
         String numOfChats=user.getNumChats().intValue()+"";
@@ -77,8 +66,8 @@ public class UserData {
         String numParticipant=chat.getNumOfParticipants().intValue()+"";
         //update values
         Map<String, Object> childUpdates = new HashMap<>();
-        childUpdates.put("/Users/" + user.getIdGoogle()+"/myChats/"+numChatsOfUser, chatData);// USER
-        childUpdates.put("/Users/" + user.getIdGoogle()+"/numChats", user.getNumChats()+1);// USER
+        childUpdates.put("/Users/" + user.getGoogleId()+"/myChats/"+numChatsOfUser, chatData);// USER
+        childUpdates.put("/Users/" + user.getGoogleId()+"/numChats", user.getNumChats()+1);// USER
 
         childUpdates.put("/Chats/" + chat.getKey() + "/participants/"+numParticipant, userData);//CHAT
         childUpdates.put("/Chats/" + chat.getKey()+"/numOfParticipant" , chat.getNumOfParticipants()+1);// Chat add cant
@@ -88,7 +77,7 @@ public class UserData {
     public static void getMyChats(User user,ValueEventListener listener){
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         DatabaseReference dbReferenceChat;
-        dbReferenceChat = database.getReference("/RoomsChat/Users/"+user.getIdGoogle()+"/myChats");
+        dbReferenceChat = database.getReference("/RoomsChat/Users/"+user.getGoogleId()+"/myChats");
         dbReferenceChat.addListenerForSingleValueEvent(listener);
         /*dbReferenceChat.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -116,7 +105,7 @@ public class UserData {
 //        final FirebaseDatabase database = FirebaseDatabase.getInstance();
 //        final DatabaseReference dbReferenceMessages;
 //        dbReferenceMessages = database.getReference("/RoomsChat/Users");
-//        dbReferenceMessages.child(user.getIdGoogle()).addListenerForSingleValueEvent(new ValueEventListener() {
+//        dbReferenceMessages.child(user.getGoogleId()).addListenerForSingleValueEvent(new ValueEventListener() {
 //            @Override
 //            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
 //                if(dataSnapshot.exists()){
@@ -133,7 +122,7 @@ public class UserData {
 //                else {
 //                    Log.i("CHAT","dataSnapshot.exists() is false");
 //                    // SAVE
-//                    dbReferenceMessages.child(user.getIdGoogle()).setValue(user.toMap())
+//                    dbReferenceMessages.child(user.getGoogleId()).setValue(user.toMap())
 //                            .addOnSuccessListener(new OnSuccessListener<Void>() {
 //                                @Override
 //                                public void onSuccess(Void aVoid) {
@@ -165,9 +154,9 @@ public class UserData {
         final DatabaseReference dbReferenceMessages;
         dbReferenceMessages = database.getReference();
         Map<String, Object> toUpdate = new HashMap<>();
-        toUpdate.put("//RoomsChat/Users/"+user.getIdGoogle(),user);
+        toUpdate.put("//RoomsChat/Users/"+user.getGoogleId(),user);
         return dbReferenceMessages.updateChildren(toUpdate);
-//        dbReferenceMessages.child(user.getIdGoogle()).addListenerForSingleValueEvent(new ValueEventListener() {
+//        dbReferenceMessages.child(user.getGoogleId()).addListenerForSingleValueEvent(new ValueEventListener() {
 //            @Override
 //            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
 //                if(dataSnapshot.exists()){

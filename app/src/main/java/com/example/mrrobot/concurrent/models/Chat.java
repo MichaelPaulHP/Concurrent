@@ -117,7 +117,7 @@ public class Chat {
 
     public User findParticipantByIdGoogle(String id) {
         for (User user : participants) {
-            if (user.getIdGoogle().equals(id)) {
+            if (user.getGoogleId().equals(id)) {
                 return user;
             }
         }
@@ -204,7 +204,7 @@ public class Chat {
     };
 
     private boolean isMyMessage(String userId) {
-        return userId.equals(User.getCurrentUser().getIdGoogle());
+        return userId.equals(User.getCurrentUser().getGoogleId());
     }
     ///////////////////////////////////////////////////////
     /////////////// Get participants from DB

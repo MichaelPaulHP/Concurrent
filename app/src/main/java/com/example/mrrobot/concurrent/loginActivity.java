@@ -3,25 +3,19 @@ package com.example.mrrobot.concurrent;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.design.widget.TextInputEditText;
 import android.support.design.widget.TextInputLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CompoundButton;
-import android.widget.EditText;
 import android.widget.ProgressBar;
-import android.widget.RadioButton;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.mrrobot.concurrent.Firebase.Auth;
 import com.example.mrrobot.concurrent.Services.ConcurrentService.ConcurrentApiClient;
-import com.example.mrrobot.concurrent.Services.SocketIO;
 
 import com.example.mrrobot.concurrent.models.User;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -31,10 +25,6 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import io.socket.client.Socket;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -93,7 +83,7 @@ public class loginActivity extends AppCompatActivity
     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
         if(isChecked){
             loginActivity.this.btnSignIn.setText("Crear Cuenta");
-            loginActivity.this.radioButton.setText("Iniciar sesion");
+            loginActivity.this.radioButton.setText("Crear Cuenta");
         }
         else{
             loginActivity.this.btnSignIn.setText("Iniciar sesion");
@@ -312,7 +302,7 @@ public class loginActivity extends AppCompatActivity
                 User user =User.getCurrentUser();
                 ConcurrentApiClient
                         .getConcurrentApiService()
-                        .registerUser(user.getIdGoogle(),
+                        .registerUser(user.getGoogleId(),
                                 user.getName(),
                                 user.getName(),
                                 "hola").enqueue(saveInServer);
